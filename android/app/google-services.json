@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "572475259854",
+    "project_id": "styleme-e47c1",
+    "storage_bucket": "styleme-e47c1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:572475259854:android:88187bead2fcb413aa099f",
+        "android_client_info": {
+          "package_name": "com.example.style_me"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtkN-b31QyW8fSW1Q5PKGgDNi65PYJS9A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
