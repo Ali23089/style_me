@@ -56,44 +56,28 @@ class _Get_LocationState extends State<Get_Location> {
 
   void packData() {
     getLocation().then((value) async {
-      // Prompt user to input a name for the location
-      TextEditingController locationNameController = TextEditingController();
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Enter Location Name'),
-            content: TextField(
-              controller: locationNameController,
-              decoration: InputDecoration(hintText: 'Location Name'),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Cancel'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: Text('Save'),
-                onPressed: () {
-                  String locationName = locationNameController.text.trim();
-                  if (locationName.isNotEmpty) {
-                    saveLocationToFirestore(
-                        value.latitude, value.longitude, locationName);
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-            ],
-          );
-        },
-      );
+      print('My Location');
+      print('${value.latitude} ${value.longitude}');
+      myMarker.add(Marker(
+          markerId: MarkerId('Current'),
+          position: LatLng(value.latitude, value.longitude),
+          infoWindow: InfoWindow(
+            title: 'Current Location',
+          )));
+      CameraPosition cameraPosition = CameraPosition(
+          target: LatLng(value.latitude, value.longitude), zoom: 14);
+
+      final GoogleMapController controller = await _controller.future;
+      controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+      setState(() {});
+
+      // Save location data to Firestore
+      saveLocationToFirestore(value.latitude, value.longitude);
     });
   }
 
   Future<void> saveLocationToFirestore(
-      double latitude, double longitude, String locationName) async {
+      double latitude, double longitude) async {
     // Initialize Firebase if not already initialized
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp();
@@ -106,7 +90,6 @@ class _Get_LocationState extends State<Get_Location> {
     await firestore.collection('Location').add({
       'latitude': latitude,
       'longitude': longitude,
-      'name': locationName,
     });
   }
 
@@ -148,7 +131,8 @@ class _Get_LocationState extends State<Get_Location> {
               },
               child: Text('Next', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 13, 106, 101),
+                backgroundColor:
+                    Color.fromARGB(255, 13, 106, 101), // Desired color
               ),
             ),
           ),

@@ -23,12 +23,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 // Search bar
-class SearchBar extends StatelessWidget {
+/*class SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: TextFormField(
+        controller: _controller,
         decoration: InputDecoration(
           prefixIcon: Icon(Icons.search),
           hintText: 'Search Salon',
@@ -39,11 +40,14 @@ class SearchBar extends StatelessWidget {
       ),
     );
   }
-}
+}*/
 
 class _HomeScreenState extends State<HomeScreen> {
   var currentPage = DrawerSections.Dashboard;
   int _selectedItem = 0;
+
+  final TextEditingController _controller = TextEditingController();
+
   var _pageData = [
     HomeScreen(),
     HistoryScreen(),
@@ -131,7 +135,19 @@ class _HomeScreenState extends State<HomeScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              SearchBar(),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextFormField(
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.search),
+                    hintText: 'Search Salon',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
