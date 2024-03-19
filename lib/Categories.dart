@@ -218,7 +218,8 @@ class CategoryDetails extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AppointmentScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => BookingCalendarDemoApp()),
                 );
               },
               style: ElevatedButton.styleFrom(

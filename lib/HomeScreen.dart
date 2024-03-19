@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:style_me/Appointment.dart';
@@ -14,6 +15,8 @@ import 'package:style_me/SetupBussiness.dart';
 import 'package:style_me/UserProfile.dart';
 import 'package:style_me/ff.dart';
 import 'package:style_me/privacyPolicy.dart';
+import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -46,7 +49,65 @@ class _HomeScreenState extends State<HomeScreen> {
   var currentPage = DrawerSections.Dashboard;
   int _selectedItem = 0;
 
+  /*String tokenforSession = '37465';
+  var uuid = Uuid();
+
   final TextEditingController _controller = TextEditingController();
+
+  List<dynamic> listforplaces = [];
+  bool isLoading = false;
+
+  void makesuggestion(String input) async {
+    if (input.isEmpty) {
+      setState(() {
+        listforplaces = [];
+      });
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    String googlePlacesApiKey =
+        "AIzaSyBjy7ZhrjIhu7HC_1YB6qo7mPhB02aCf74"; // Replace with your API key
+    String groundURL =
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+    String request = '$groundURL?input=$input&key=$googlePlacesApiKey';
+
+    var responseResult = await http.get(Uri.parse(request));
+
+    if (responseResult.statusCode == 200) {
+      setState(() {
+        listforplaces = jsonDecode(responseResult.body)['predictions'];
+        isLoading = false;
+      });
+    } else {
+      print("Failed to load data: ${responseResult.statusCode}");
+      setState(() {
+        isLoading = false;
+      });
+      // Handle error gracefully, e.g., show a snackbar
+    }
+  }
+
+  void onModify(String input) {
+    if (tokenforSession == null) {
+      setState(() {
+        tokenforSession = uuid.v4();
+      });
+    }
+
+    makesuggestion(input);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(() {
+      onModify(_controller.text);
+    });
+  }*/
 
   var _pageData = [
     HomeScreen(),
@@ -118,13 +179,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
             selectedIndex: _selectedItem,
-            onTabChange: (Index) {
+            onTabChange: (index) {
               setState(() {
-                _selectedItem = Index;
+                _selectedItem = index;
               });
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => _pageData[Index]),
+                MaterialPageRoute(builder: (context) => _pageData[index]),
               );
             },
           ),
@@ -134,11 +195,12 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(8.0),
         child: SingleChildScrollView(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextFormField(
-                  controller: _controller,
+                  // controller: _controller,
                   decoration: InputDecoration(
                     prefixIcon: Icon(Icons.search),
                     hintText: 'Search Salon',
@@ -148,6 +210,32 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              /* isLoading
+                  ? CircularProgressIndicator() // Show loading indicator while fetching suggestions
+                  : listforplaces.isEmpty
+                      ? Center(
+                          child: Text(
+                            'No suggestions',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        )
+                      : Flexible(
+                          fit: FlexFit.loose,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: listforplaces.length,
+                            itemBuilder: (context, index) {
+                              return ListTile(
+                                title: Text(listforplaces[index]['description']),
+                                onTap: () {
+                                  // Handle selection
+                                  print(
+                                      'Selected: ${listforplaces[index]['description']}');
+                                },
+                              );
+                            },
+                          ),
+                        ),*/
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
@@ -569,7 +657,8 @@ class _HomeScreenState extends State<HomeScreen> {
               case DrawerSections.Appointments:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AppointmentScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => BookingCalendarDemoApp()),
                 );
                 break;
               case DrawerSections.Blog:

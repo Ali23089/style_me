@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:style_me/BarberHome.dart';
-import 'package:style_me/SalonScreen.dart';
+import 'package:image_picker/image_picker.dart'; // Import the image_picker package
+import 'dart:io'; // Import dart:io to work with File objects
 
 class CNIC extends StatefulWidget {
   const CNIC({Key? key}) : super(key: key);
@@ -10,18 +10,32 @@ class CNIC extends StatefulWidget {
 }
 
 class _CNICState extends State<CNIC> {
-  String? _certificateImage;
-  String? _secondImage;
+  File? _certificateImage;
+  File? _secondImage;
 
-  void _getImage() {
+  Future<void> _getImage() async {
+    final picker = ImagePicker();
+    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
+
     setState(() {
-      _certificateImage = "assets/certificate.png";
+      if (pickedImage != null) {
+        _certificateImage = File(pickedImage.path);
+      } else {
+        print('No image selected.');
+      }
     });
   }
 
-  void _getSecondImage() {
+  Future<void> _getSecondImage() async {
+    final picker = ImagePicker();
+    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
+
     setState(() {
-      _secondImage = "assets/second_image.png";
+      if (pickedImage != null) {
+        _secondImage = File(pickedImage.path);
+      } else {
+        print('No image selected.');
+      }
     });
   }
 
@@ -69,7 +83,7 @@ class _CNICState extends State<CNIC> {
                                 color: Colors.grey[200],
                                 borderRadius: BorderRadius.circular(15),
                               ),
-                              child: Image.asset(
+                              child: Image.file(
                                 _certificateImage!,
                                 fit: BoxFit.cover,
                               ),
@@ -120,7 +134,7 @@ class _CNICState extends State<CNIC> {
                                 color: Colors.grey[200],
                                 borderRadius: BorderRadius.circular(15),
                               ),
-                              child: Image.asset(
+                              child: Image.file(
                                 _secondImage!,
                                 fit: BoxFit.cover,
                               ),
@@ -152,11 +166,7 @@ class _CNICState extends State<CNIC> {
                   Center(
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => BarberScreen()),
-                        );
+                        // Your submission logic here
                       },
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:style_me/Appointment.dart';
 import 'package:style_me/BarberForm.dart';
 import 'package:style_me/Categories.dart';
-import 'package:style_me/Certificate.dart';
 import 'package:style_me/Details.dart';
 import 'package:style_me/Feedback.dart';
 import 'package:style_me/ForgetPasword.dart';
@@ -12,11 +11,13 @@ import 'package:style_me/Login.dart';
 import 'package:style_me/LoginBarber.dart';
 import 'package:style_me/MapScreen.dart';
 import 'package:style_me/Nav_Bar.dart';
+import 'package:style_me/NewCertificate.dart';
 import 'package:style_me/Profile.dart';
 import 'package:style_me/Register.dart';
 import 'package:style_me/RegisterBarbar.dart';
 import 'package:style_me/SalonScreen.dart';
 import 'package:style_me/SaloonForm.dart';
+import 'package:style_me/Sample.dart';
 import 'package:style_me/Settings.dart';
 import 'package:style_me/Splash.dart';
 import 'package:style_me/SwithUser.dart';
@@ -49,9 +50,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.grey,
       ),
-      home: const SwitchUser(),
+      home: Certificate(),
       debugShowCheckedModeBanner: false,
     );
   }
-  
 }

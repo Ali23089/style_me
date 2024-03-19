@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:style_me/identitty.dart';
 
 class Certificate extends StatefulWidget {
@@ -11,9 +13,14 @@ class Certificate extends StatefulWidget {
 class _CertificateState extends State<Certificate> {
   String? _certificateImage;
 
-  void _getImage() {
+  Future<void> _getImage() async {
+    final picker = ImagePicker();
+    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
+
     setState(() {
-      _certificateImage = "assets/certificate.png";
+      if (pickedImage != null) {
+        _certificateImage = pickedImage.path;
+      }
     });
   }
 
@@ -48,13 +55,13 @@ class _CertificateState extends State<Certificate> {
                           _certificateImage != null
                               ? Container(
                                   width: 300,
-                                  height: 1,
+                                  height: 200,
                                   decoration: BoxDecoration(
                                     color: Colors.grey[200],
                                     borderRadius: BorderRadius.circular(15),
                                   ),
-                                  child: Image.asset(
-                                    _certificateImage!,
+                                  child: Image.file(
+                                    File(_certificateImage!),
                                     fit: BoxFit.cover,
                                   ),
                                 )

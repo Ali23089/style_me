@@ -1,291 +1,114 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:booking_calendar/booking_calendar.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() {
-  runApp(MaterialApp(
-    home: AppointmentScreen(),
-  ));
+  initializeDateFormatting()
+      .then((_) => runApp(const BookingCalendarDemoApp()));
 }
 
-class AppointmentScreen extends StatefulWidget {
+class BookingCalendarDemoApp extends StatefulWidget {
+  const BookingCalendarDemoApp({Key? key}) : super(key: key);
+
   @override
-  _AppointmentScreenState createState() => _AppointmentScreenState();
+  State<BookingCalendarDemoApp> createState() => _BookingCalendarDemoAppState();
 }
 
-class _AppointmentScreenState extends State<AppointmentScreen> {
-  DateTime today = DateTime.now();
+class _BookingCalendarDemoAppState extends State<BookingCalendarDemoApp> {
+  final now = DateTime.now();
+  late BookingService mockBookingService;
 
-  void _oneDaySelected(DateTime day, DateTime focusedDay) {
-    setState(() {
-      today = day;
-    });
+  @override
+  void initState() {
+    super.initState();
+    // DateTime.now().startOfDay
+    // DateTime.now().endOfDay
+    mockBookingService = BookingService(
+        serviceName: 'Mock Service',
+        serviceDuration: 30,
+        bookingEnd: DateTime(now.year, now.month, now.day, 18, 0),
+        bookingStart: DateTime(now.year, now.month, now.day, 8, 0));
+  }
+
+  Stream<dynamic>? getBookingStreamMock(
+      {required DateTime end, required DateTime start}) {
+    return Stream.value([]);
+  }
+
+  Future<dynamic> uploadBookingMock(
+      {required BookingService newBooking}) async {
+    await Future.delayed(const Duration(seconds: 1));
+    converted.add(DateTimeRange(
+        start: newBooking.bookingStart, end: newBooking.bookingEnd));
+    print('${newBooking.toJson()} has been uploaded');
+  }
+
+  List<DateTimeRange> converted = [];
+
+  List<DateTimeRange> convertStreamResultMock({required dynamic streamResult}) {
+    ///here you can parse the streamresult and convert to [List<DateTimeRange>]
+    ///take care this is only mock, so if you add today as disabledDays it will still be visible on the first load
+    ///disabledDays will properly work with real data
+    DateTime first = now;
+    DateTime tomorrow = now.add(const Duration(days: 1));
+    DateTime second = now.add(const Duration(minutes: 55));
+    DateTime third = now.subtract(const Duration(minutes: 240));
+    DateTime fourth = now.subtract(const Duration(minutes: 500));
+    converted.add(
+        DateTimeRange(start: first, end: now.add(const Duration(minutes: 30))));
+    converted.add(DateTimeRange(
+        start: second, end: second.add(const Duration(minutes: 23))));
+    converted.add(DateTimeRange(
+        start: third, end: third.add(const Duration(minutes: 15))));
+    converted.add(DateTimeRange(
+        start: fourth, end: fourth.add(const Duration(minutes: 50))));
+
+    //book whole day example
+    converted.add(DateTimeRange(
+        start: DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 5, 0),
+        end: DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 23, 0)));
+    return converted;
+  }
+
+  List<DateTimeRange> generatePauseSlots() {
+    return [
+      DateTimeRange(
+          start: DateTime(now.year, now.month, now.day, 12, 0),
+          end: DateTime(now.year, now.month, now.day, 13, 0))
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    String formattedDate = DateFormat('dd-MM-yyyy').format(today);
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 13, 106, 101),
-        title: Text(
-          'Appointment Screen',
-          style: TextStyle(color: Colors.white),
+    return MaterialApp(
+        title: 'Booking Calendar Demo',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
         ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(height: 20),
-              Text(
-                'Selected Day: $formattedDate',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Color.fromARGB(255, 13, 106, 101),
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 20),
-              Container(
-                padding: EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.grey,
-                    width: 1.0,
-                  ),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: TableCalendar(
-                  locale: 'en_US',
-                  rowHeight: 43,
-                  headerStyle: HeaderStyle(
-                    formatButtonVisible: false,
-                    titleCentered: true,
-                  ),
-                  availableGestures: AvailableGestures.all,
-                  selectedDayPredicate: (day) => isSameDay(day, today),
-                  focusedDay: today,
-                  firstDay: DateTime.utc(2000, 1, 1),
-                  lastDay: DateTime.utc(2050, 12, 31),
-                  onDaySelected: _oneDaySelected,
-                  calendarStyle: CalendarStyle(
-                    selectedDecoration: BoxDecoration(
-                      color: Color.fromARGB(255, 13, 106, 101),
-                      shape: BoxShape.circle,
-                    ),
-                    selectedTextStyle: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => AddAppointmentScreen()));
-                },
-                child: Text(
-                  'Add Appointment',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromARGB(255, 13, 106, 101),
-                  textStyle: TextStyle(
-                    fontSize: 18,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ],
+        home: Scaffold(
+          appBar: AppBar(
+            title: const Text('Booking Calendar Demo'),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class AddAppointmentScreen extends StatefulWidget {
-  @override
-  _AddAppointmentScreenState createState() => _AddAppointmentScreenState();
-}
-
-class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = TimeOfDay.now();
-  String _selectedLocation = 'Office';
-  String? _selectedService; // To keep track of selected service
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (pickedDate != null && pickedDate != _selectedDate)
-      setState(() {
-        _selectedDate = pickedDate;
-      });
-  }
-
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-    );
-    if (pickedTime != null && pickedTime != _selectedTime)
-      setState(() {
-        _selectedTime = pickedTime;
-      });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        title: Text(
-          'Add Appointment',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Enter Appointment Details',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+          body: Center(
+            child: BookingCalendar(
+              bookingService: mockBookingService,
+              convertStreamResultToDateTimeRanges: convertStreamResultMock,
+              getBookingStream: getBookingStreamMock,
+              uploadBooking: uploadBookingMock,
+              pauseSlots: generatePauseSlots(),
+              pauseSlotText: 'LUNCH',
+              hideBreakTime: false,
+              loadingWidget: const Text('Fetching data...'),
+              uploadingWidget: const CircularProgressIndicator(),
+              locale: 'en_US',
+              startingDayOfWeek: StartingDayOfWeek.tuesday,
+              wholeDayIsBookedWidget:
+                  const Text('Sorry, for this day everything is booked'),
+              //disabledDates: [DateTime(2023, 1, 20)],
+              //disabledDays: [6, 7],
             ),
-            SizedBox(height: 20),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Appointment Title',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 20),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 4,
-            ),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Time: ${_selectedTime.format(context)}'),
-                ElevatedButton(
-                  onPressed: () => _selectTime(context),
-                  child: Text(
-                    'Select Time',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 13, 106, 101),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            DropdownButton<String>(
-              value: _selectedLocation,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedLocation = newValue!;
-                });
-              },
-              items: <String>['Office', 'Home', 'Virtual', 'Other']
-                  .map<DropdownMenuItem<String>>(
-                    (String value) => DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    ),
-                  )
-                  .toList(),
-            ),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedService = 'Salon Service';
-                    });
-                  },
-                  child: Text(
-                    'Salon Service',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _selectedService == 'Salon Service'
-                        ? Colors.green
-                        : Color.fromARGB(255, 13, 106, 101),
-                  ),
-                ),
-                Spacer(),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedService = 'Home Service';
-                    });
-                  },
-                  child: Text(
-                    'Home Service',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _selectedService == 'Home Service'
-                        ? Colors.green
-                        : Color.fromARGB(255, 13, 106, 101),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                // Implement the logic to save the appointment details
-              },
-              child: Text(
-                'Save Appointment',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 13, 106, 101),
-                textStyle: TextStyle(
-                  fontSize: 18,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+          ),
+        ));
   }
 }

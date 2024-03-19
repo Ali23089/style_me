@@ -87,7 +87,12 @@ class _Get_LocationState extends State<Get_Location> {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     // Save location data to Firestore
-    await firestore.collection('Location').add({
+    // Replace 'User' with actual collection ID
+    await firestore
+        .collection('User')
+        .doc("HlISRugiLox9RxIhmof2")
+        .collection('Location')
+        .add({
       'latitude': latitude,
       'longitude': longitude,
     });
