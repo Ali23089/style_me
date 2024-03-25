@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:style_me/HomeScreen.dart';
 
 class Get_Location extends StatefulWidget {
@@ -37,11 +38,18 @@ class _Get_LocationState extends State<Get_Location> {
         infoWindow: InfoWindow(title: 'Gol Plot')),
   ];
 
+  late Marker _currentLocationMarker;
+
   @override
   void initState() {
     super.initState();
     myMarker.addAll(markerList);
-    packData();
+    _currentLocationMarker = Marker(
+      markerId: MarkerId('Current'),
+      position: LatLng(0, 0),
+      infoWindow: InfoWindow(title: 'Current Location'),
+    );
+    _saveLocationOnLogin();
   }
 
   Future<Position> getLocation() async {
@@ -54,48 +62,50 @@ class _Get_LocationState extends State<Get_Location> {
     return await Geolocator.getCurrentPosition();
   }
 
-  void packData() {
-    getLocation().then((value) async {
-      print('My Location');
-      print('${value.latitude} ${value.longitude}');
-      myMarker.add(Marker(
-          markerId: MarkerId('Current'),
-          position: LatLng(value.latitude, value.longitude),
-          infoWindow: InfoWindow(
-            title: 'Current Location',
-          )));
-      CameraPosition cameraPosition = CameraPosition(
-          target: LatLng(value.latitude, value.longitude), zoom: 14);
-
-      final GoogleMapController controller = await _controller.future;
-      controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
-      setState(() {});
-
-      // Save location data to Firestore
-      saveLocationToFirestore(value.latitude, value.longitude);
+  void _saveLocationOnLogin() {
+    FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user != null) {
+        // User is logged in, save location
+        _saveLocationToFirestore();
+      }
     });
   }
 
-  Future<void> saveLocationToFirestore(
-      double latitude, double longitude) async {
-    // Initialize Firebase if not already initialized
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp();
+  Future<void> _saveLocationToFirestore() async {
+    try {
+      Position position = await getLocation();
+      String? userEmail = FirebaseAuth.instance.currentUser?.email;
+
+      if (userEmail != null) {
+        // Get user document reference by email
+        QuerySnapshot userSnapshot = await FirebaseFirestore.instance
+            .collection('User')
+            .where('Email', isEqualTo: userEmail)
+            .get();
+
+        if (userSnapshot.docs.isNotEmpty) {
+          String userId = userSnapshot.docs.first.id;
+          // Save location to Firestore
+          await FirebaseFirestore.instance
+              .collection('User')
+              .doc(userId)
+              .update({
+            'Location': {
+              'latitude': position.latitude,
+              'longitude': position.longitude,
+            },
+          });
+        }
+      }
+      // Update marker position
+      setState(() {
+        _currentLocationMarker = _currentLocationMarker.copyWith(
+          positionParam: LatLng(position.latitude, position.longitude),
+        );
+      });
+    } catch (e) {
+      print('Error saving location: $e');
     }
-
-    // Get Firestore instance
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-    // Save location data to Firestore
-    // Replace 'User' with actual collection ID
-    await firestore
-        .collection('User')
-        .doc("HlISRugiLox9RxIhmof2")
-        .collection('Location')
-        .add({
-      'latitude': latitude,
-      'longitude': longitude,
-    });
   }
 
   @override
@@ -106,7 +116,7 @@ class _Get_LocationState extends State<Get_Location> {
           GoogleMap(
             initialCameraPosition: _initialPosition,
             mapType: MapType.normal,
-            markers: Set<Marker>.of(myMarker),
+            markers: Set<Marker>.of([...myMarker, _currentLocationMarker]),
             onMapCreated: (GoogleMapController controller) {
               _controller.complete(controller);
             },
@@ -115,7 +125,12 @@ class _Get_LocationState extends State<Get_Location> {
             bottom: 20,
             left: 20,
             child: ElevatedButton(
-              onPressed: packData,
+              onPressed: () async {
+                await _saveLocationToFirestore();
+                final GoogleMapController controller = await _controller.future;
+                controller.animateCamera(
+                    CameraUpdate.newLatLng(_currentLocationMarker.position));
+              },
               child:
                   Text('Set Location', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(

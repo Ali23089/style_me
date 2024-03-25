@@ -17,7 +17,6 @@ import 'package:style_me/Register.dart';
 import 'package:style_me/RegisterBarbar.dart';
 import 'package:style_me/SalonScreen.dart';
 import 'package:style_me/SaloonForm.dart';
-import 'package:style_me/Sample.dart';
 import 'package:style_me/Settings.dart';
 import 'package:style_me/Splash.dart';
 import 'package:style_me/SwithUser.dart';
@@ -50,7 +49,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.grey,
       ),
-      home: Certificate(),
+      home: SwitchUser(),
       debugShowCheckedModeBanner: false,
     );
   }

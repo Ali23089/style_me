@@ -4,7 +4,6 @@ import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:style_me/Booking.dart';
 import 'package:style_me/HomeScreen.dart';
-import 'package:style_me/ff.dart';
 
 class NavBar extends StatefulWidget {
   const NavBar({super.key});

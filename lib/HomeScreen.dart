@@ -13,7 +13,6 @@ import 'package:style_me/SalonScreen.dart';
 import 'package:style_me/Settings.dart';
 import 'package:style_me/SetupBussiness.dart';
 import 'package:style_me/UserProfile.dart';
-import 'package:style_me/ff.dart';
 import 'package:style_me/privacyPolicy.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
@@ -109,11 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }*/
 
-  var _pageData = [
-    HomeScreen(),
-    HistoryScreen(),
-    UserProfile(userId: "HlISRugiLox9RxIhmof2")
-  ];
+  var _pageData = [HomeScreen(), HistoryScreen(), UserProfile()];
 
   @override
   Widget build(BuildContext context) {
