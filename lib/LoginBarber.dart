@@ -3,6 +3,7 @@ import 'package:style_me/BarberForm.dart';
 import 'package:style_me/BarberHome.dart';
 import 'package:style_me/Barbers.dart';
 import 'package:style_me/RegisterBarbar.dart';
+import 'package:style_me/SalonScreen.dart';
 import 'package:style_me/firebase_functions.dart';
 
 class BarberLogin extends StatefulWidget {
@@ -136,7 +137,7 @@ class _BarberLoginState extends State<BarberLogin> {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (Context) => BarberScreen()));
+                                      builder: (Context) => SalonScreen()));
                             },
                             child: Text(
                               'SIGN IN',

@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:style_me/NewCertificate.dart';
 
 class SalonForm extends StatefulWidget {
@@ -14,6 +17,9 @@ class _SalonFormState extends State<SalonForm> {
   final ImagePicker _imagePicker = ImagePicker(); // Initialize ImagePicker here
   File? _imageFile;
   String? _selectedCategory;
+  final salonNameController = TextEditingController();
+  final salonAddressController = TextEditingController();
+  final salonContactController = TextEditingController();
 
   Future<void> _getImage() async {
     final pickedFile =
@@ -25,12 +31,63 @@ class _SalonFormState extends State<SalonForm> {
     });
   }
 
+  Future<void> _registerSalon() async {
+    try {
+      // Get the currently logged-in user's email
+      String? email = FirebaseAuth.instance.currentUser!.email;
+
+      // Upload image to Firebase Storage
+      String imageUrl = await _uploadImageToFirebase(email!);
+
+      // Store salon information in Firestore
+      await FirebaseFirestore.instance.collection('Salons').add({
+        'salonName': salonNameController.text,
+        'salonAddress': salonAddressController.text,
+        'salonContact': salonContactController.text,
+        'category': _selectedCategory,
+        'email': email, // Add currently registered email to salon document
+        'salonImageUrl': imageUrl, // Add salon image URL to salon document
+      });
+
+      // Navigate to the next screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Certificate()),
+      );
+    } catch (e) {
+      print('Error registering salon: $e');
+      // Handle registration error
+    }
+  }
+
+  Future<String> _uploadImageToFirebase(String email) async {
+    if (_imageFile == null) return "";
+
+    try {
+      // Create a reference to the location you want to upload to in Firebase Storage
+      String fileName = 'profile_$email.jpg';
+      Reference storageReference =
+          FirebaseStorage.instance.ref().child('Salon Profile/$fileName');
+
+      // Upload the file to Firebase Storage
+      await storageReference.putFile(_imageFile!);
+
+      // Get the download URL of the uploaded file
+      String downloadURL = await storageReference.getDownloadURL();
+      return downloadURL;
+    } catch (e) {
+      print('Error uploading image to Firebase Storage: $e');
+      // Handle error uploading image
+      return "";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text('Barber Form'),
+        title: Text('Salon Form'),
       ),
       body: Container(
         color: Color.fromARGB(255, 13, 106, 101),
@@ -98,6 +155,7 @@ class _SalonFormState extends State<SalonForm> {
                   ),
                   SizedBox(height: 16),
                   TextFormField(
+                    controller: salonNameController,
                     decoration: InputDecoration(
                       labelText: 'SalonName',
                       border: OutlineInputBorder(),
@@ -105,6 +163,7 @@ class _SalonFormState extends State<SalonForm> {
                   ),
                   SizedBox(height: 28),
                   TextFormField(
+                    controller: salonAddressController,
                     decoration: InputDecoration(
                       labelText: 'Salon Address',
                       border: OutlineInputBorder(),
@@ -112,6 +171,7 @@ class _SalonFormState extends State<SalonForm> {
                   ),
                   SizedBox(height: 28),
                   TextFormField(
+                    controller: salonContactController,
                     decoration: InputDecoration(
                       labelText: 'Salon contact',
                       border: OutlineInputBorder(),
@@ -130,7 +190,7 @@ class _SalonFormState extends State<SalonForm> {
                     items: [
                       'For Gents',
                       'For Ladies',
-                      'Both G&L',
+                      'Unisex',
                     ].map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
@@ -141,13 +201,7 @@ class _SalonFormState extends State<SalonForm> {
                   SizedBox(height: 30),
                   Center(
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => Certificate()),
-                        );
-                      },
+                      onPressed: _registerSalon,
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all(
                             Color.fromARGB(255, 13, 106, 101)),

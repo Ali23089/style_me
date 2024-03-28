@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; // Import the image_picker package
-import 'dart:io'; // Import dart:io to work with File objects
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:style_me/BarberHome.dart';
+import 'package:style_me/SalonScreen.dart';
 
 class CNIC extends StatefulWidget {
   const CNIC({Key? key}) : super(key: key);
@@ -10,33 +13,58 @@ class CNIC extends StatefulWidget {
 }
 
 class _CNICState extends State<CNIC> {
-  File? _certificateImage;
-  File? _secondImage;
+  File? _frontImage;
+  File? _backImage;
 
-  Future<void> _getImage() async {
+  Future<void> _getFrontImage() async {
     final picker = ImagePicker();
     final pickedImage = await picker.pickImage(source: ImageSource.gallery);
 
     setState(() {
       if (pickedImage != null) {
-        _certificateImage = File(pickedImage.path);
+        _frontImage = File(pickedImage.path);
       } else {
         print('No image selected.');
       }
     });
   }
 
-  Future<void> _getSecondImage() async {
+  Future<void> _getBackImage() async {
     final picker = ImagePicker();
     final pickedImage = await picker.pickImage(source: ImageSource.gallery);
 
     setState(() {
       if (pickedImage != null) {
-        _secondImage = File(pickedImage.path);
+        _backImage = File(pickedImage.path);
       } else {
         print('No image selected.');
       }
     });
+  }
+
+  Future<void> _uploadImagesToFirebase() async {
+    try {
+      // Upload front image
+      if (_frontImage != null) {
+        String frontFileName =
+            'front_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        Reference frontStorageReference =
+            FirebaseStorage.instance.ref().child('CNIC_images/$frontFileName');
+        await frontStorageReference.putFile(_frontImage!);
+      }
+
+      // Upload back image
+      if (_backImage != null) {
+        String backFileName =
+            'back_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        Reference backStorageReference =
+            FirebaseStorage.instance.ref().child('CNIC_images/$backFileName');
+        await backStorageReference.putFile(_backImage!);
+      }
+    } catch (e) {
+      print('Error uploading images to Firebase Storage: $e');
+      // Handle error uploading images
+    }
   }
 
   @override
@@ -74,8 +102,8 @@ class _CNICState extends State<CNIC> {
                   SizedBox(height: 20),
                   Center(
                     child: GestureDetector(
-                      onTap: _getImage,
-                      child: _certificateImage != null
+                      onTap: _getFrontImage,
+                      child: _frontImage != null
                           ? Container(
                               width: 300,
                               height: 200,
@@ -84,7 +112,7 @@ class _CNICState extends State<CNIC> {
                                 borderRadius: BorderRadius.circular(15),
                               ),
                               child: Image.file(
-                                _certificateImage!,
+                                _frontImage!,
                                 fit: BoxFit.cover,
                               ),
                             )
@@ -125,8 +153,8 @@ class _CNICState extends State<CNIC> {
                   SizedBox(height: 20),
                   Center(
                     child: GestureDetector(
-                      onTap: _getSecondImage,
-                      child: _secondImage != null
+                      onTap: _getBackImage,
+                      child: _backImage != null
                           ? Container(
                               width: 300,
                               height: 200,
@@ -135,7 +163,7 @@ class _CNICState extends State<CNIC> {
                                 borderRadius: BorderRadius.circular(15),
                               ),
                               child: Image.file(
-                                _secondImage!,
+                                _backImage!,
                                 fit: BoxFit.cover,
                               ),
                             )
@@ -166,7 +194,13 @@ class _CNICState extends State<CNIC> {
                   Center(
                     child: ElevatedButton(
                       onPressed: () {
-                        // Your submission logic here
+                        _uploadImagesToFirebase();
+                        // Navigate to the next screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => SalonScreen()),
+                        );
                       },
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all(

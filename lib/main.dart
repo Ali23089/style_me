@@ -1,6 +1,8 @@
+import 'package:booking_calendar/booking_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:style_me/Appointment.dart';
 import 'package:style_me/BarberForm.dart';
+import 'package:style_me/BarberHome.dart';
 import 'package:style_me/Categories.dart';
 import 'package:style_me/Details.dart';
 import 'package:style_me/Feedback.dart';
@@ -24,6 +26,8 @@ import 'package:intl/intl.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:style_me/UserModel.dart';
+import 'package:style_me/Verify.dart';
+import 'package:style_me/bookingreceipt.dart';
 import 'package:style_me/firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -49,7 +53,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.grey,
       ),
-      home: SwitchUser(),
+      home: const SwitchUser(),
       debugShowCheckedModeBanner: false,
     );
   }

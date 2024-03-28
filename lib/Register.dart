@@ -103,7 +103,6 @@ class _RegisterPageState extends State<RegisterPage> {
               controller: nameController,
               decoration: InputDecoration(
                 labelText: "Name",
-                //    hintText: "Enter your name",
               ),
             ),
             const SizedBox(height: 10),
@@ -111,7 +110,6 @@ class _RegisterPageState extends State<RegisterPage> {
               controller: emailController,
               decoration: InputDecoration(
                 labelText: "Email",
-                //    hintText: "Enter your email",
                 suffixIcon: Icon(Icons.email),
               ),
             ),
@@ -121,7 +119,6 @@ class _RegisterPageState extends State<RegisterPage> {
               obscureText: !_isPasswordVisible,
               decoration: InputDecoration(
                 labelText: "Password",
-                //   hintText: "Enter your password",
                 suffixIcon: IconButton(
                   icon: Icon(
                     _isPasswordVisible
@@ -146,6 +143,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           email: emailController.text,
                           password: passwordController.text);
 
+                  // Send verification email
+                  await userCredential.user?.sendEmailVerification();
+
                   // Store additional user details in Firestore after successful authentication
                   if (userCredential.user != null) {
                     CollectionReference collRef =
@@ -160,6 +160,14 @@ class _RegisterPageState extends State<RegisterPage> {
                       context,
                       MaterialPageRoute(builder: (context) => Loginpage()),
                     );
+
+                    // Show a success message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            'Registration successful. Verification email sent!'),
+                      ),
+                    );
                   }
                 } catch (e) {
                   // Handle any errors related to Firebase Authentication
@@ -173,11 +181,11 @@ class _RegisterPageState extends State<RegisterPage> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                shape: StadiumBorder(), backgroundColor: Colors.transparent,
-                elevation: 0, // Set elevation to 0
-                shadowColor:
-                    Colors.transparent, // Ensure shadow color is transparent
-                minimumSize: Size.fromHeight(60), // Making button transparent
+                shape: StadiumBorder(),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                minimumSize: Size.fromHeight(60),
               ),
               child: Ink(
                 decoration: BoxDecoration(

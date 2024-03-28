@@ -5,6 +5,7 @@ import 'package:style_me/BarberHome.dart';
 import 'package:style_me/Get_User.dart';
 import 'package:style_me/Login.dart';
 import 'package:style_me/HomeScreen.dart';
+import 'package:style_me/SalonScreen.dart';
 import 'package:style_me/main.dart';
 
 class SessionController {
@@ -110,6 +111,16 @@ Future<void> signInWithEmailAndPassword(
 
     if (credential.user != null) {
       // Navigate to HomeScreen after successful login
+      if (!credential.user!.emailVerified) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Login Successful"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        return;
+      }
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => Get_Location()),
@@ -164,7 +175,7 @@ Future<void> signInWithEmailAndPasswordtwo(
     if (credential.user != null) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => BarberScreen()),
+        MaterialPageRoute(builder: (context) => SalonScreen()),
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

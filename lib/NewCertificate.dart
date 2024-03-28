@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:style_me/identitty.dart';
 
 class Certificate extends StatefulWidget {
@@ -11,7 +14,7 @@ class Certificate extends StatefulWidget {
 }
 
 class _CertificateState extends State<Certificate> {
-  String? _certificateImage;
+  File? _certificateImage;
 
   Future<void> _getImage() async {
     final picker = ImagePicker();
@@ -19,9 +22,39 @@ class _CertificateState extends State<Certificate> {
 
     setState(() {
       if (pickedImage != null) {
-        _certificateImage = pickedImage.path;
+        _certificateImage = File(pickedImage.path);
       }
     });
+  }
+
+  Future<void> _uploadImageToFirebase() async {
+    if (_certificateImage == null) return;
+
+    try {
+      // Get the currently logged-in user's email
+      String? email = FirebaseAuth.instance.currentUser!.email;
+
+      // Create a reference to the location you want to upload to in Firebase Storage
+      String fileName =
+          'certificate_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      Reference storageReference =
+          FirebaseStorage.instance.ref().child('Salon Certificates/$fileName');
+
+      // Upload the file to Firebase Storage
+      await storageReference.putFile(_certificateImage!);
+
+      // Get the download URL of the uploaded file
+      String downloadURL = await storageReference.getDownloadURL();
+
+      // Update the certificate image URL in Firestore
+      await FirebaseFirestore.instance
+          .collection('Salons')
+          .doc(email)
+          .update({'certificateImageUrl': downloadURL});
+    } catch (e) {
+      print('Error uploading image to Firebase Storage: $e');
+      // Handle error uploading image
+    }
   }
 
   @override
@@ -45,80 +78,55 @@ class _CertificateState extends State<Certificate> {
                     'Upload your License/Certificate',
                     style: Theme.of(context).textTheme.headline6,
                   ),
-                  SizedBox(height: 100),
+                  SizedBox(height: 20),
                   Center(
                     child: GestureDetector(
                       onTap: _getImage,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                      child: Stack(
+                        alignment: Alignment.center,
                         children: [
                           _certificateImage != null
-                              ? Container(
+                              ? Image.file(
+                                  _certificateImage!,
                                   width: 300,
                                   height: 200,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  child: Image.file(
-                                    File(_certificateImage!),
-                                    fit: BoxFit.cover,
-                                  ),
+                                  fit: BoxFit.cover,
                                 )
-                              : Card(
-                                  elevation: 5,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  child: Container(
-                                    width: 300,
-                                    height: 200,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.add_a_photo,
-                                        size: 50,
-                                        color: Color.fromARGB(255, 6, 35, 28),
-                                      ),
-                                    ),
-                                  ),
+                              : Icon(
+                                  Icons.add_a_photo,
+                                  size: 100,
+                                  color: Color.fromARGB(255, 6, 35, 28),
                                 ),
-                          SizedBox(height: 20),
-                          Text(
-                            'Upload image',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                              color: Colors.black,
-                            ),
-                          ),
-                          SizedBox(height: 30),
-                          Center(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => CNIC()),
-                                );
-                              },
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all(
-                                    Color.fromARGB(255, 13, 106, 101)),
-                                fixedSize:
-                                    MaterialStateProperty.all(Size(200, 50)),
-                              ),
-                              child: Text(
-                                'Next',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 20),
-                              ),
-                            ),
-                          ),
                         ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  TextButton(
+                    onPressed: _getImage,
+                    child: Text('Select Image'),
+                  ),
+                  SizedBox(height: 30),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Call the function to upload the image to Firebase
+                        _uploadImageToFirebase();
+
+                        // Navigate to the next screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CNIC()),
+                        );
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(
+                            Color.fromARGB(255, 13, 106, 101)),
+                        fixedSize: MaterialStateProperty.all(Size(200, 50)),
+                      ),
+                      child: Text(
+                        'Next',
+                        style: TextStyle(color: Colors.white, fontSize: 20),
                       ),
                     ),
                   ),
