@@ -88,7 +88,7 @@ class _BookingCalendarDemoAppState extends State<BookingCalendarDemoApp> {
         ),
         home: Scaffold(
           appBar: AppBar(
-            title: const Text('Booking Calendar Demo'),
+            title: const Text('Booking Calendar'),
           ),
           body: Center(
             child: BookingCalendar(

@@ -4,6 +4,7 @@ import 'package:style_me/Appointment.dart';
 import 'package:style_me/BarberForm.dart';
 import 'package:style_me/BarberHome.dart';
 import 'package:style_me/Categories.dart';
+import 'package:style_me/Converter.dart';
 import 'package:style_me/Details.dart';
 import 'package:style_me/Feedback.dart';
 import 'package:style_me/ForgetPasword.dart';
@@ -14,6 +15,7 @@ import 'package:style_me/LoginBarber.dart';
 import 'package:style_me/MapScreen.dart';
 import 'package:style_me/Nav_Bar.dart';
 import 'package:style_me/NewCertificate.dart';
+import 'package:style_me/Places.dart';
 import 'package:style_me/Profile.dart';
 import 'package:style_me/Register.dart';
 import 'package:style_me/RegisterBarbar.dart';
@@ -32,6 +34,7 @@ import 'package:style_me/firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:style_me/identitty.dart';
+import 'package:style_me/reciept.dart';
 
 void main() async {
   await initializeDateFormatting(
@@ -53,7 +56,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.grey,
       ),
-      home: const SwitchUser(),
+      home: SwitchUser(),
       debugShowCheckedModeBanner: false,
     );
   }

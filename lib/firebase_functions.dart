@@ -114,8 +114,8 @@ Future<void> signInWithEmailAndPassword(
       if (!credential.user!.emailVerified) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Login Successful"),
-            backgroundColor: Colors.green,
+            content: Text("Verify your Email Address"),
+            backgroundColor: Colors.red,
           ),
         );
 
@@ -175,7 +175,7 @@ Future<void> signInWithEmailAndPasswordtwo(
     if (credential.user != null) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => SalonScreen()),
+        MaterialPageRoute(builder: (context) => BarberScreen()),
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

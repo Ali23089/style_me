@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 // Example data model for list items
 class ListItem {
@@ -30,7 +33,7 @@ class _BarberScreenState extends State<BarberScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.teal,
       appBar: AppBar(
         title: Text('Barber Dashboard'),
         actions: [
@@ -59,7 +62,11 @@ class _BarberScreenState extends State<BarberScreen> {
                     children: [
                       Text(
                         'Home Service:',
-                        style: TextStyle(fontSize: 18),
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Switch(
                         value: _isHomeServiceEnabled,
@@ -95,14 +102,14 @@ class _BarberScreenState extends State<BarberScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Add your floating action button functionality here
-          // For example, navigate to AnotherScreen
+          // For example, navigate to AddServiceScreen
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AddServiceScreen()),
           );
         },
         child: Icon(Icons.add),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.yellow,
       ),
     );
   }
@@ -117,7 +124,6 @@ class AddServiceScreen extends StatefulWidget {
 
 class _AddServiceScreenState extends State<AddServiceScreen> {
   File? _image;
-  final picker = ImagePicker();
   List<Map<String, dynamic>> _services = [];
   List<String> _availableCategories = [
     'Men\'s Haircut',
@@ -137,31 +143,75 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
   TextEditingController _descriptionController = TextEditingController();
   TextEditingController _priceController = TextEditingController();
 
-  Future getImage() async {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+
+  void _getImage(BuildContext context) async {
+    final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-      } else {
-        print('No image selected.');
-      }
-    });
+    if (pickedFile != null) {
+      final imageFile = File(pickedFile.path);
+      setState(() {
+        _image = imageFile;
+      });
+    }
   }
 
-  void addService() {
-    setState(() {
-      _services.add({
+  void addService() async {
+    // Get current user
+    User? user = _auth.currentUser;
+    String? email;
+
+    if (user != null) {
+      email = user.email;
+    } else {
+      // Handle user not authenticated or null
+      return;
+    }
+
+    // Upload image to Firebase Storage and get download URL
+    String imageUrl = "";
+    if (_image != null) {
+      final metadata = SettableMetadata(contentType: 'image/jpeg');
+      final ref = _storage
+          .ref()
+          .child('service_images/${DateTime.now().millisecondsSinceEpoch}');
+      final uploadTask = ref.putFile(_image!, metadata);
+      final snapshot = await uploadTask.whenComplete(() {});
+      imageUrl = await snapshot.ref.getDownloadURL();
+    }
+
+    // Store service in Firestore along with barber's email and image URL
+    try {
+      await _firestore.collection('services').add({
+        'barberEmail': email,
         'category': _selectedCategory!,
         'productName': _productNameController.text,
         'description': _descriptionController.text,
         'price': _priceController.text,
+        'imageUrl': imageUrl,
       });
-      _productNameController.clear();
-      _descriptionController.clear();
-      _priceController.clear();
-      _selectedCategory = null;
-    });
+
+      // Clear input fields
+      setState(() {
+        _services.add({
+          'category': _selectedCategory!,
+          'productName': _productNameController.text,
+          'description': _descriptionController.text,
+          'price': _priceController.text,
+        });
+        _productNameController.clear();
+        _descriptionController.clear();
+        _priceController.clear();
+        _selectedCategory = null;
+        _image = null;
+      });
+    } catch (e) {
+      // Handle error
+      print("Error adding service: $e");
+    }
   }
 
   @override
@@ -170,24 +220,45 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       appBar: AppBar(
         title: Text('Add Service'),
       ),
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: _image != null
-                    ? Image.file(
-                        _image!,
-                        height: 200,
-                        width: 200,
-                        fit: BoxFit.cover,
-                      )
-                    : ElevatedButton(
-                        onPressed: getImage,
-                        child: Text('Upload Image'),
+              GestureDetector(
+                onTap: () => _getImage(context),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 90,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.black,
+                          width: 1,
+                        ),
                       ),
+                      child: _image != null
+                          ? Image.file(
+                              _image!,
+                              fit: BoxFit.cover,
+                            )
+                          : Icon(
+                              Icons.camera_alt,
+                              size: 38,
+                              color: const Color.fromARGB(255, 0, 0, 0),
+                            ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Upload Image',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ],
+                ),
               ),
               SizedBox(height: 20),
               DropdownButtonFormField<String>(
@@ -231,7 +302,9 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: addService,
-                child: Text('Add Service'),
+                child: Text(
+                  'Add Service',
+                ),
               ),
             ],
           ),

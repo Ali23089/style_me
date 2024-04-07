@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:style_me/Appointment.dart';
@@ -6,12 +8,14 @@ import 'package:style_me/Blog.dart';
 import 'package:style_me/Booking.dart';
 import 'package:style_me/Categories.dart';
 import 'package:style_me/Feedback.dart';
+import 'package:style_me/Get_User.dart';
 import 'package:style_me/Header.dart';
 import 'package:style_me/History.dart';
 import 'package:style_me/Nav_Bar.dart';
 import 'package:style_me/SalonScreen.dart';
 import 'package:style_me/Settings.dart';
 import 'package:style_me/SetupBussiness.dart';
+import 'package:style_me/SwithUser.dart';
 import 'package:style_me/UserProfile.dart';
 import 'package:style_me/privacyPolicy.dart';
 import 'package:http/http.dart' as http;
@@ -108,10 +112,17 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }*/
 
-  var _pageData = [HomeScreen(), HistoryScreen(), UserProfile()];
+  var _pageData = [
+    HomeScreen(),
+    HistoryScreen(),
+    Get_Location(),
+    UserProfile()
+  ];
 
   @override
   Widget build(BuildContext context) {
+    String userEmail = FirebaseAuth.instance.currentUser!.email!;
+
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.white),
@@ -165,12 +176,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 text: "Appointment",
               ),
               GButton(
-                icon: Icons.person,
-                text: "Account",
+                icon: Icons.location_on,
+                text: "Location",
               ),
               GButton(
-                icon: Icons.inbox_rounded,
-                text: "Cart",
+                icon: Icons.person,
+                text: "Profile",
               ),
             ],
             selectedIndex: _selectedItem,
@@ -258,9 +269,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Container(
                         margin: EdgeInsets.only(right: 11),
-                        height: 200,
-                        width: 200,
+                        height: 150, // Adjusted height
+                        width: 150,
                         decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(20),
+                          ), // Rounded corners
                           image: DecorationImage(
                             image: AssetImage('assets/men.jpg'),
                             fit: BoxFit.cover,
@@ -274,13 +288,55 @@ class _HomeScreenState extends State<HomeScreen> {
                                   builder: (context) => SalonScreen()),
                             );
                           },
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.7)
+                                      ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 10, // Positioned at the bottom
+                                left: 10, // Positioned from the left
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Hair Styling', // Dynamically replace with your deal name variable
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    ),
+                                    Text(
+                                      'PKR: 250', // Dynamically replace with your deal price variable
+                                      style: TextStyle(
+                                          fontSize: 14, color: Colors.yellow),
+
+                                      // Adjusted for visibility
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       Container(
                         margin: EdgeInsets.only(right: 11),
-                        height: 200,
-                        width: 200,
+                        height: 150,
+                        width: 150,
                         decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
                           image: DecorationImage(
                             image: AssetImage('assets/deal.jpg'),
                             fit: BoxFit.cover,
@@ -294,13 +350,57 @@ class _HomeScreenState extends State<HomeScreen> {
                                   builder: (context) => SalonScreen()),
                             );
                           },
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(20)),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.7)
+                                      ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 10,
+                                left: 10,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Hair Cleansing', // Placeholder for the deal name
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    ),
+                                    Text(
+                                      'PkR: 450', // Placeholder for the deal price
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: Colors.yellow),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       Container(
                         margin: EdgeInsets.only(right: 11),
-                        height: 200,
-                        width: 200,
+                        height: 150,
+                        width: 150,
                         decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
                           image: DecorationImage(
                             image: AssetImage('assets/deal1.jpg'),
                             fit: BoxFit.cover,
@@ -314,13 +414,56 @@ class _HomeScreenState extends State<HomeScreen> {
                                   builder: (context) => SalonScreen()),
                             );
                           },
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(20)),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.7)
+                                      ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 10,
+                                left: 10,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Facial Mask', // Replace with the actual deal name
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    ),
+                                    Text(
+                                      'PKR: 900', // Replace with the actual deal price
+                                      style: TextStyle(
+                                          fontSize: 14, color: Colors.yellow),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       Container(
                         margin: EdgeInsets.only(right: 11),
-                        height: 200,
-                        width: 200,
+                        height: 150,
+                        width: 150,
                         decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                              Radius.circular(20)), // Adds rounded corners
                           image: DecorationImage(
                             image: AssetImage('assets/deal2.jpg'),
                             fit: BoxFit.cover,
@@ -334,6 +477,47 @@ class _HomeScreenState extends State<HomeScreen> {
                                   builder: (context) => SalonScreen()),
                             );
                           },
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.all(Radius.circular(
+                                        20)), // Ensures the gradient respects the border radius
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.7)
+                                      ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 10,
+                                left: 10,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Party Makeup', // Replace with the actual deal name
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    ),
+                                    Text(
+                                      'PKR: 3000', // Replace with the actual deal price
+                                      style: TextStyle(
+                                          fontSize: 14, color: Colors.yellow),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -369,19 +553,79 @@ class _HomeScreenState extends State<HomeScreen> {
                         margin: EdgeInsets.only(right: 11),
                         height: 200,
                         width: 200,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage('assets/sn1.jpg'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => SalonScreen()),
-                            );
+                        child: FutureBuilder<DocumentSnapshot>(
+                          future: FirebaseFirestore.instance
+                              .collection('Salons')
+                              .doc(userEmail)
+                              .get(),
+                          builder: (BuildContext context,
+                              AsyncSnapshot<DocumentSnapshot> snapshot) {
+                            if (snapshot.connectionState ==
+                                    ConnectionState.done &&
+                                snapshot.data != null) {
+                              var salonData =
+                                  snapshot.data!.data() as Map<String, dynamic>;
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => SalonScreen()),
+                                  );
+                                },
+                                child: Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(20)),
+                                          image: DecorationImage(
+                                            image: NetworkImage(salonData[
+                                                'salonImageUrl']), // Use salon image URL from Firestore
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned.fill(
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(20)),
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black.withOpacity(0.7)
+                                            ],
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 10,
+                                      left: 10,
+                                      child: Text(
+                                        salonData[
+                                            'salonName'], // Use salon name from Firestore
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else if (snapshot.connectionState ==
+                                    ConnectionState.none ||
+                                snapshot.hasError) {
+                              return Text("Error fetching data");
+                            } else {
+                              return CircularProgressIndicator();
+                            }
                           },
                         ),
                       ),
@@ -390,6 +634,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 200,
                         width: 200,
                         decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                              Radius.circular(20)), // Added for rounded corners
                           image: DecorationImage(
                             image: AssetImage('assets/sn2.jpg'),
                             fit: BoxFit.cover,
@@ -403,6 +649,55 @@ class _HomeScreenState extends State<HomeScreen> {
                                   builder: (context) => SalonScreen()),
                             );
                           },
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.all(Radius.circular(
+                                        20)), // Ensures the gradient respects the border radius
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.7)
+                                      ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 10,
+                                left: 10,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Azan Hair Dresser', // Placeholder for the actual salon name
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    ),
+                                    Row(
+                                      children: List.generate(5, (index) {
+                                        // Dynamically generate stars based on salon rating
+                                        return Icon(
+                                          index < 3
+                                              ? Icons.star
+                                              : Icons
+                                                  .star_border, // Placeholder for rating logic
+                                          color: Colors.yellow,
+                                          size: 20,
+                                        );
+                                      }),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       Container(
@@ -410,6 +705,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 200,
                         width: 200,
                         decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                              Radius.circular(20)), // Adds rounded corners
                           image: DecorationImage(
                             image: AssetImage('assets/sn3.jpg'),
                             fit: BoxFit.cover,
@@ -423,6 +720,55 @@ class _HomeScreenState extends State<HomeScreen> {
                                   builder: (context) => SalonScreen()),
                             );
                           },
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.all(Radius.circular(
+                                        20)), // Ensures gradient respects the border radius
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.7)
+                                      ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 10,
+                                left: 10,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Roop Singhar Salon', // Replace with actual salon name variable
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    ),
+                                    Row(
+                                      children: List.generate(5, (index) {
+                                        // Dynamically generate stars based on salon rating
+                                        return Icon(
+                                          index < 3
+                                              ? Icons.star
+                                              : Icons
+                                                  .star_border, // Adjust based on actual rating
+                                          color: Colors.yellow,
+                                          size: 20,
+                                        );
+                                      }),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       Container(
@@ -430,6 +776,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 200,
                         width: 200,
                         decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                              Radius.circular(20)), // Adds rounded corners
                           image: DecorationImage(
                             image: AssetImage('assets/sn4.png'),
                             fit: BoxFit.cover,
@@ -443,6 +791,55 @@ class _HomeScreenState extends State<HomeScreen> {
                                   builder: (context) => SalonScreen()),
                             );
                           },
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.all(Radius.circular(
+                                        20)), // Ensures gradient respects the border radius
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.7)
+                                      ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 10,
+                                left: 10,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Zohaib Stylish', // Replace with actual salon name variable
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    ),
+                                    Row(
+                                      children: List.generate(5, (index) {
+                                        // Dynamically generate stars based on salon rating
+                                        return Icon(
+                                          index < 3
+                                              ? Icons.star
+                                              : Icons
+                                                  .star_border, // Adjust based on actual rating
+                                          color: Colors.yellow,
+                                          size: 20,
+                                        );
+                                      }),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -472,6 +869,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 margin: EdgeInsets.only(bottom: 11),
                 height: 200,
                 decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(
+                      Radius.circular(20)), // Adds rounded corners
                   image: DecorationImage(
                     image: AssetImage('assets/ps4.jpg'),
                     fit: BoxFit.cover,
@@ -484,12 +883,63 @@ class _HomeScreenState extends State<HomeScreen> {
                       MaterialPageRoute(builder: (context) => SalonScreen()),
                     );
                   },
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(
+                                20)), // Ensures gradient respects the border radius
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.7)
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 10,
+                        left: 10,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Peter Salon', // Placeholder for the salon name
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                            Row(
+                              children: List.generate(5, (index) {
+                                // Dynamically generates stars based on salon rating
+                                return Icon(
+                                  index < 3
+                                      ? Icons.star
+                                      : Icons
+                                          .star_border, // Placeholder for rating, adjust accordingly
+                                  color: Colors.yellow,
+                                  size: 20,
+                                );
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Container(
                 margin: EdgeInsets.only(bottom: 11),
                 height: 200,
                 decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(
+                      Radius.circular(20)), // Adds rounded corners
                   image: DecorationImage(
                     image: AssetImage('assets/sn4.png'),
                     fit: BoxFit.cover,
@@ -502,12 +952,63 @@ class _HomeScreenState extends State<HomeScreen> {
                       MaterialPageRoute(builder: (context) => SalonScreen()),
                     );
                   },
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(
+                                20)), // Ensures the gradient respects the border radius
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.7)
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 10,
+                        left: 10,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Tony and Guy', // Replace with actual salon name variable
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                            Row(
+                              children: List.generate(5, (index) {
+                                // Dynamically generates stars based on salon rating
+                                return Icon(
+                                  index < 3
+                                      ? Icons.star
+                                      : Icons
+                                          .star_border, // Adjust based on actual rating
+                                  color: Colors.yellow,
+                                  size: 20,
+                                );
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Container(
                 margin: EdgeInsets.only(bottom: 11),
                 height: 200,
                 decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(
+                      Radius.circular(20)), // Adds rounded corners
                   image: DecorationImage(
                     image: AssetImage('assets/ps1.jpg'),
                     fit: BoxFit.cover,
@@ -520,12 +1021,63 @@ class _HomeScreenState extends State<HomeScreen> {
                       MaterialPageRoute(builder: (context) => SalonScreen()),
                     );
                   },
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(
+                                20)), // Ensures the gradient respects the border radius
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.7)
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 10,
+                        left: 10,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Nabeela,s Salon', // Replace with the actual salon name variable
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                            Row(
+                              children: List.generate(5, (index) {
+                                // Dynamically generate stars based on the salon rating
+                                return Icon(
+                                  index < 3
+                                      ? Icons.star
+                                      : Icons
+                                          .star_border, // Adjust based on actual rating
+                                  color: Colors.yellow,
+                                  size: 20,
+                                );
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Container(
                 margin: EdgeInsets.only(bottom: 11),
                 height: 200,
                 decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(
+                      Radius.circular(20)), // Adds rounded corners
                   image: DecorationImage(
                     image: AssetImage('assets/ps2.jpg'),
                     fit: BoxFit.cover,
@@ -538,12 +1090,63 @@ class _HomeScreenState extends State<HomeScreen> {
                       MaterialPageRoute(builder: (context) => SalonScreen()),
                     );
                   },
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(
+                                20)), // Ensures the gradient respects the border radius
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.7)
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 10,
+                        left: 10,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Shimla Beauty Parlor', // Placeholder for the actual salon name
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                            Row(
+                              children: List.generate(5, (index) {
+                                // Dynamically generates stars based on the salon rating
+                                return Icon(
+                                  index < 3
+                                      ? Icons.star
+                                      : Icons
+                                          .star_border, // Placeholder for rating, adjust accordingly
+                                  color: Colors.yellow,
+                                  size: 20,
+                                );
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Container(
                 margin: EdgeInsets.only(bottom: 11),
                 height: 200,
                 decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(
+                      Radius.circular(20)), // Adds rounded corners
                   image: DecorationImage(
                     image: AssetImage('assets/ps3.jpg'),
                     fit: BoxFit.cover,
@@ -556,8 +1159,57 @@ class _HomeScreenState extends State<HomeScreen> {
                       MaterialPageRoute(builder: (context) => SalonScreen()),
                     );
                   },
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(
+                                20)), // Ensures the gradient respects the border radius
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.7)
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 10,
+                        left: 10,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'BUZZ Groom', // Placeholder for the actual salon name
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                            Row(
+                              children: List.generate(5, (index) {
+                                // Dynamically generates stars based on the salon rating
+                                return Icon(
+                                  index < 3
+                                      ? Icons.star
+                                      : Icons
+                                          .star_border, // Placeholder for rating, adjust accordingly
+                                  color: Colors.yellow,
+                                  size: 20,
+                                );
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -603,6 +1255,11 @@ class _HomeScreenState extends State<HomeScreen> {
         height: 50,
         child: ElevatedButton(
             onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SwitchUser()),
+              );
+
               // Handle button press
             },
             style: ButtonStyle(

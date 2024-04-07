@@ -137,7 +137,7 @@ class _BarberLoginState extends State<BarberLogin> {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (Context) => SalonScreen()));
+                                      builder: (Context) => BarberScreen()));
                             },
                             child: Text(
                               'SIGN IN',
