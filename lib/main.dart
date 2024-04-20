@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.grey,
       ),
-      home: SwitchUser(),
+      home: const SwitchUser(),
       debugShowCheckedModeBanner: false,
     );
   }

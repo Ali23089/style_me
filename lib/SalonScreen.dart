@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:style_me/Barbers.dart';
 import 'package:style_me/Categories.dart';
-import 'package:style_me/DatePicker.dart';
-import 'package:style_me/Description.dart';
 import 'package:style_me/Details.dart';
-import 'package:style_me/Reviews.dart';
 
 class SalonScreen extends StatefulWidget {
-  const SalonScreen({Key? key}) : super(key: key);
+  final String salonEmail; // Define the salon email here
+
+  const SalonScreen({Key? key, required this.salonEmail})
+      : super(key: key); // Modify the constructor to accept it
 
   @override
   State<SalonScreen> createState() => _SalonScreenState();
@@ -15,15 +15,12 @@ class SalonScreen extends StatefulWidget {
 
 class _SalonScreenState extends State<SalonScreen>
     with SingleTickerProviderStateMixin {
-  // used for animation
   int currentIndex = 0;
 
   final List<String> screenNames = [
     'Categories',
-    //'Description',
     'Details',
     'Barbers',
-    //'Reviews',
   ];
 
   int current = 0;
@@ -43,8 +40,8 @@ class _SalonScreenState extends State<SalonScreen>
 
   @override
   Widget build(BuildContext context) {
-    double buttonWidth = MediaQuery.of(context).size.width *
-        0.2; // Set the width as a percentage of the screen width
+    // Dynamically calculate the button width based on the number of items
+    double buttonWidth = MediaQuery.of(context).size.width / screenNames.length;
 
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 13, 106, 101),
@@ -61,7 +58,6 @@ class _SalonScreenState extends State<SalonScreen>
               scrollDirection: Axis.horizontal,
               itemCount: screenNames.length,
               itemBuilder: (ctx, index) {
-                // callback function
                 return GestureDetector(
                   onTap: () {
                     setState(() {
@@ -75,7 +71,7 @@ class _SalonScreenState extends State<SalonScreen>
                   },
                   child: Container(
                     margin: const EdgeInsets.all(5),
-                    width: buttonWidth, // Set the width of the button
+                    width: buttonWidth, // Dynamically set width
                     height: 45,
                     decoration: BoxDecoration(
                       color: current == index ? Colors.white70 : Colors.white54,
@@ -106,7 +102,6 @@ class _SalonScreenState extends State<SalonScreen>
             ),
           ),
           Expanded(
-            // used to make the PageView take up all available vertical space within its parent widget.
             child: PageView(
               controller: pageController,
               onPageChanged: (index) {
@@ -115,11 +110,11 @@ class _SalonScreenState extends State<SalonScreen>
                 });
               },
               children: [
-                Categories(),
-                //Description(),
+                Categories(
+                    salonEmail: widget
+                        .salonEmail), // Use widget.salonEmail to access the salonEmail passed to SalonScreen
                 Details(),
                 Barbers(),
-                // Reviews(),
               ],
             ),
           ),

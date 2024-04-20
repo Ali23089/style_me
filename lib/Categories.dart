@@ -1,8 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:style_me/Appointment.dart';
 
 class SalonCategoryScreen extends StatelessWidget {
+  final String salonEmail; // Add the salonEmail property here
+
+  SalonCategoryScreen({Key? key, required this.salonEmail})
+      : super(key: key); // Update the constructor to accept salonEmail
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,228 +25,107 @@ class SalonCategoryScreen extends StatelessWidget {
             fit: BoxFit.cover,
           ),
           // Categories
-          Expanded(child: Categories()),
+          Expanded(
+            child: Categories(
+                salonEmail: salonEmail), // Pass salonEmail to Categories
+          ),
         ],
       ),
     );
   }
 }
 
-class Categories extends StatelessWidget {
-  final List<Map<String, dynamic>> categories = [
-    {
-      'name': 'Haircut',
-      'image': 'assets/HairCut1.png',
-      'description': 'Get the latest haircut trends!',
-    },
-    {
-      'name': 'Facial',
-      'image': 'assets/Facial.jpg',
-      'description': 'Rejuvenate your skin with our facial treatments.',
-    },
-    {
-      'name': 'Manicure & Pedicure',
-      'image': 'assets/Menipedi.jpg',
-      'description':
-          'Pamper your hands and feet with our manicure and pedicure services.',
-    },
-    {
-      'name': 'Makeup & Beauty',
-      'image': 'assets/Makeup.jpg',
-      'description': 'Enhance your beauty with our makeup and beauty services.',
-    },
-    {
-      'name': 'Mehndi',
-      'image': 'assets/Mehndi1.jpg',
-      'description': 'Relax with our soothing massage therapies.',
-    },
-    {
-      'name': 'Waxing',
-      'image': 'assets/waxing.jpg',
-      'description': 'Smooth and hair-free skin with our waxing services.',
-    },
-    {
-      'name': 'Nail Art',
-      'image': 'assets/NailArt.jpg',
-      'description': 'Express yourself with creative nail art designs.',
-    },
-    {
-      'name': 'Mens Grooming',
-      'image': 'assets/Grooming.jpg',
-      'description': 'Specialized grooming services for men.',
-    },
-    {
-      'name': 'Beard Styling',
-      'image': 'assets/Beard.jpg',
-      'description': 'Perfect styling for your beard.',
-    },
-    {
-      'name': 'Shave',
-      'image': 'assets/Shave.jpg',
-      'description': 'Experience a smooth and clean shave.',
-    },
-    // Add more categories as needed
-  ];
+class Categories extends StatefulWidget {
+  final String salonEmail; // Add your salonEmail parameter here if needed
+
+  Categories({Key? key, required this.salonEmail}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16.0),
-      child: ListView.builder(
-        itemCount: categories.length,
-        itemBuilder: (BuildContext context, int index) {
-          final category = categories[index];
-
-          return Card(
-            elevation: 4.0,
-            margin: EdgeInsets.symmetric(vertical: 8.0),
-            child: ListTile(
-              leading: Image.asset(
-                category['image'],
-                width: 50.0,
-                height: 50.0,
-                fit: BoxFit.cover,
-              ),
-              title: Text(
-                category['name'],
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              subtitle: Text(category['description']),
-              onTap: () {
-                // Navigate to a new screen to show details
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CategoryDetails(category: category),
-                  ),
-                );
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
+  _CategoriesState createState() => _CategoriesState();
 }
 
-class CategoryDetails extends StatelessWidget {
-  final Map<String, dynamic> category;
+class _CategoriesState extends State<Categories> {
+  Future<List<dynamic>>? servicesFuture;
 
-  CategoryDetails({required this.category});
+  @override
+  void initState() {
+    super.initState();
+    servicesFuture = fetchServicesForSalon(widget.salonEmail);
+  }
+
+  Future<List<dynamic>> fetchServicesForSalon(String salonEmail) async {
+    FirebaseFirestore _db = FirebaseFirestore.instance;
+    List<dynamic> servicesList = [];
+
+    // Print the salonEmail to debug
+    print('Fetching services for salon email: $salonEmail');
+
+    try {
+      QuerySnapshot servicesSnapshot = await _db
+          .collection('services') // Use the 'services' collection name
+          .where('barberEmail', isEqualTo: salonEmail)
+          .get();
+
+      servicesList = servicesSnapshot.docs.map((doc) {
+        var data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id; // Capture the document ID if needed
+        return data;
+      }).toList();
+    } catch (e) {
+      print("Error fetching services: $e");
+    }
+
+    return servicesList;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(category['name']),
+        title: Text('Available Services'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.asset(
-              category['image'],
-              height: 280,
-              width: double.infinity,
-              fit: BoxFit.fill,
-            ),
-            SizedBox(height: 16.0),
-            Text(
-              category['name'],
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-            SizedBox(height: 16.0),
-            Text(
-              'Description:',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-            Text(
-              category['description'],
-              style: TextStyle(
-                fontSize: 14,
-              ),
-            ),
-            SizedBox(height: 16.0),
-            RatingBar.builder(
-              initialRating: 3,
-              itemCount: 5,
-              itemBuilder: (context, index) {
-                switch (index) {
-                  case 0:
-                    return Icon(
-                      Icons.sentiment_very_dissatisfied,
-                      color: Colors.red,
-                    );
-                  case 1:
-                    return Icon(
-                      Icons.sentiment_dissatisfied,
-                      color: Colors.redAccent,
-                    );
-                  case 2:
-                    return Icon(
-                      Icons.sentiment_neutral,
-                      color: Colors.amber,
-                    );
-                  case 3:
-                    return Icon(
-                      Icons.sentiment_satisfied,
-                      color: Colors.lightGreen,
-                    );
-                  case 4:
-                    return Icon(
-                      Icons.sentiment_very_satisfied,
-                      color: Colors.green,
-                    );
-                  default:
-                    // Handle any unexpected index by returning a default icon or widget.
-                    return Icon(
-                      Icons.star,
-                      color: Colors.grey,
-                    );
-                }
-              },
-              onRatingUpdate: (rating) {
-                print(rating);
-              },
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => BookingCalendarDemoApp()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 13, 106, 101),
-                textStyle: TextStyle(
-                  fontSize: 18,
+      body: FutureBuilder<List<dynamic>>(
+        future: servicesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          } else if (snapshot.data!.isEmpty) {
+            return Center(child: Text("No services available."));
+          }
+
+          return ListView.builder(
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) {
+              var service = snapshot.data![index];
+              return Card(
+                elevation: 4.0,
+                margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                child: ListTile(
+                  leading: Image.network(
+                    service['imageUrl'] as String? ??
+                        'default_image.png', // Fallback for missing image
+                    width: 50.0,
+                    height: 50.0,
+                    fit: BoxFit.cover,
+                  ),
+                  title: Text(
+                    service['productName'] ??
+                        'Service', // Use 'productName' from your Firestore
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    'Price: ${service['price'] ?? 'N/A'}\nDescription: ${service['description'] ?? 'No description available.'}', // Include price and description
+                  ),
+                  onTap: () {
+                    // Optional: Handle the tap, for example, navigate to a service detail screen
+                  },
                 ),
-                shape: BeveledRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                ),
-              ),
-              child: Text(
-                'Save Appointment',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
-              ),
-            ),
-          ],
-        ),
+              );
+            },
+          );
+        },
       ),
     );
   }

@@ -199,7 +199,7 @@ class _CNICState extends State<CNIC> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => SalonScreen()),
+                              builder: (context) => BarberScreen()),
                         );
                       },
                       style: ButtonStyle(
