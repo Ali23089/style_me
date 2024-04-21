@@ -126,9 +126,10 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           buildSearchBar(),
-          buildTopDealsSection(),
           buildSalonsNearbySection(),
-          buildPopularSalonsSection(),
+          buildTopDealsSection(),
+
+          buildPopularSalonsSection(context), // Passing context as an argument
         ],
       ),
     );
@@ -147,12 +148,151 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<List<Map<String, dynamic>>> fetchTopDeals() async {
+    QuerySnapshot dealsSnapshot =
+        await FirebaseFirestore.instance.collection('deals').get();
+    return dealsSnapshot.docs
+        .map((doc) => doc.data() as Map<String, dynamic>)
+        .toList();
+  }
+
+  Future<String> getSalonNameByEmail(String salonEmail) async {
+    var salon = await FirebaseFirestore.instance
+        .collection('Salons')
+        .where('email', isEqualTo: salonEmail)
+        .limit(1)
+        .get();
+
+    if (salon.docs.isNotEmpty) {
+      return salon.docs.first.data()['salonName'];
+    } else {
+      return 'Salon not found';
+    }
+  }
+
   Widget buildTopDealsSection() {
-    // Assuming this will have dynamic or static data in the future
-    return Container(); // Placeholder
+    Color tealColor = Colors.teal;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Text(
+            "Top Deals",
+            style: TextStyle(
+              fontSize: 20.0,
+              fontWeight: FontWeight.bold,
+              color: tealColor,
+            ),
+          ),
+        ),
+        FutureBuilder(
+          future: fetchTopDeals(),
+          builder: (BuildContext context,
+              AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else if (snapshot.hasData) {
+              List<Map<String, dynamic>> deals = snapshot.data!;
+              return Container(
+                height: 270,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: deals.length,
+                  itemBuilder: (context, index) {
+                    return FutureBuilder(
+                      future: getSalonNameByEmail(deals[index]['salonEmail']),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<String> salonSnapshot) {
+                        if (salonSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return CircularProgressIndicator(); // Show a loader until the salon name is fetched
+                        }
+
+                        String salonName =
+                            salonSnapshot.data ?? 'Salon not found';
+                        return buildDealCard(
+                            deals[index], salonName, tealColor);
+                      },
+                    );
+                  },
+                ),
+              );
+            } else {
+              return Text('No deals available at the moment.');
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget buildDealCard(
+      Map<String, dynamic> deal, String salonName, Color tealColor) {
+    return Container(
+      width: 200,
+      padding: EdgeInsets.all(10),
+      margin: EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle, // Make the card circular
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipOval(
+            child: Image.network(
+              deal['imageUrl'] ?? 'https://via.placeholder.com/150',
+              width: 150, // Diameter of the circle
+              height: 150, // Diameter of the circle
+              fit: BoxFit.cover,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            deal['dealName'] ?? 'No Name',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: tealColor,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            'Discount: ${deal['discount']}%',
+            style: TextStyle(
+              color: tealColor,
+            ),
+          ),
+          Text(
+            salonName,
+            style: TextStyle(
+              color: tealColor,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget buildSalonsNearbySection() {
+    // Define your teal color here for convenience
+    Color tealColor = Colors.teal;
+
+    // Placeholder image URL - replace with an appropriate one for your app
+    String placeholderImageUrl = 'https://via.placeholder.com/50';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -161,14 +301,14 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Text(
             "Salons Nearby",
             style: TextStyle(
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.black),
+              fontSize: 20.0,
+              fontWeight: FontWeight.bold,
+              color: tealColor, // Changed to teal color
+            ),
           ),
         ),
         Container(
-          height:
-              220, // Increased height to accommodate larger images and ratings
+          height: 250,
           child: ListView.builder(
             shrinkWrap: true,
             scrollDirection: Axis.horizontal,
@@ -178,25 +318,39 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 200,
                 child: Card(
                   margin: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+                  color: Colors.white, // Set the card background to white
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(color: tealColor, width: 2), // Teal border
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(
-                        flex: 3,
-                        child: Image.network(
-                          salons[index]['image'] ?? '',
-                          width: 140,
-                          height: 140,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Icon(Icons.broken_image),
+                      Container(
+                        width: 150, // Adjusted image width
+                        height: 100, // Adjusted image height
+                        child: ClipRRect(
+                          borderRadius:
+                              BorderRadius.circular(4), // Rounded corners
+                          child: Image.network(
+                            salons[index]['image'] ?? placeholderImageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Image.network(
+                              placeholderImageUrl, // Placeholder image
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
                       ),
                       Padding(
                         padding: EdgeInsets.all(8),
                         child: Text(
                           salons[index]['name'] ?? 'No Name',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: tealColor, // Changed to teal color
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -204,12 +358,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: List.generate(5, (i) {
                           return Icon(
-                            i < salons[index]['rating']
+                            i < (salons[index]['rating'] ?? 0)
                                 ? Icons.star
                                 : Icons.star_border,
-                            color: i < salons[index]['rating']
-                                ? Colors.amber
-                                : Colors.grey,
+                            color: i < (salons[index]['rating'] ?? 0)
+                                ? tealColor
+                                : Colors.grey, // Teal stars for rating
                           );
                         }),
                       ),
@@ -217,24 +371,26 @@ class _HomeScreenState extends State<HomeScreen> {
                         onPressed: () {
                           var salonEmail = salons[index]['email'];
                           if (salonEmail == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content:
-                                      Text("Salon email is not available")),
-                            );
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text("Salon email is not available")));
                             return;
                           }
-
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) => SalonScreen(
-                                      salonEmail: salonEmail,
-                                    )),
+                              builder: (context) => SalonScreen(
+                                  salonEmail:
+                                      salonEmail), // Replace with your SalonScreen class
+                            ),
                           );
                         },
-                        child: Text('View Details'),
-                      )
+                        child: Text(
+                          'View Details',
+                          style: TextStyle(
+                            color: tealColor, // Text in teal color
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -246,9 +402,119 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget buildPopularSalonsSection() {
-    // Static or dynamic popular salons listing
-    return Container(); // Placeholder
+  Widget buildPopularSalonsSection(BuildContext context) {
+    // Define your teal color here for convenience
+    Color tealColor = Colors.teal;
+
+    // Placeholder image URL - replace with an appropriate one for your app
+    String placeholderImageUrl = 'https://via.placeholder.com/150';
+
+    // Assuming 'salons' is a list of salon data you've fetched from your database
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Text(
+            "Popular Salons",
+            style: TextStyle(
+              fontSize: 20.0,
+              fontWeight: FontWeight.bold,
+              color: tealColor,
+            ),
+          ),
+        ),
+        ListView.builder(
+          shrinkWrap:
+              true, // Use shrinkWrap to limit the ListView to the size of its content
+          physics:
+              NeverScrollableScrollPhysics(), // Use this if you want to disable the scrolling of this ListView
+          itemCount: salons.length, // The count of salons to display
+          itemBuilder: (context, index) {
+            return Card(
+              margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              color: Colors.white, // Set the card background to white
+              shape: RoundedRectangleBorder(
+                side: BorderSide(color: tealColor, width: 2), // Teal border
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4), // Rounded corners
+                    child: Image.network(
+                      salons[index]['image'] ?? placeholderImageUrl,
+                      width: double
+                          .infinity, // Makes the image expand to fill the width of the card
+                      height: 150, // Fixed height for all images
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Image.network(
+                        placeholderImageUrl,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Text(
+                      salons[index]['name'] ?? 'No Name',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: tealColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(5, (i) {
+                        return Icon(
+                          i < (salons[index]['rating'] ?? 0)
+                              ? Icons.star
+                              : Icons.star_border,
+                          color: i < (salons[index]['rating'] ?? 0)
+                              ? tealColor
+                              : Colors.grey, // Teal stars for rating
+                          size: 20, // Setting a fixed size for all icons
+                        );
+                      }),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      var salonEmail = salons[index]['email'];
+                      if (salonEmail == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text("Salon email is not available")));
+                        return;
+                      }
+                      // Navigate to the salon details screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SalonScreen(
+                            salonEmail: salonEmail,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'View Details',
+                      style: TextStyle(
+                        color: tealColor, // Text in teal color
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
   }
 
   Widget buildBottomNavBar() {

@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -263,7 +262,7 @@ class _SalonFormState extends State<SalonForm> {
                         fixedSize: MaterialStateProperty.all(Size(200, 50)),
                       ),
                       child: Text(
-                        'Register Salon',
+                        'Next',
                         style: TextStyle(color: Colors.white, fontSize: 20),
                       ),
                     ),

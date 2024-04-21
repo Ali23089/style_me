@@ -47,6 +47,7 @@ class _SalonScreenState extends State<SalonScreen>
       backgroundColor: Color.fromARGB(255, 13, 106, 101),
       appBar: AppBar(
         title: Text('Salon Screen'),
+        //backgroundColor: Colors.teal,
       ),
       body: Column(
         children: [
@@ -111,10 +112,12 @@ class _SalonScreenState extends State<SalonScreen>
               },
               children: [
                 Categories(
-                    salonEmail: widget
-                        .salonEmail), // Use widget.salonEmail to access the salonEmail passed to SalonScreen
-                Details(),
-                Barbers(),
+                    salonEmail:
+                        widget.salonEmail), // Pass the salonEmail to Categories
+                Details(
+                    salonEmail:
+                        widget.salonEmail), // Pass the salonEmail to Details
+                //Barbers(salonEmail: widget.salonEmail), // You might want to pass the salonEmail to Barbers as well if it's needed
               ],
             ),
           ),
