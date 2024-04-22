@@ -13,7 +13,6 @@ class SalonCategoryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Salon Categories'),
-        //  backgroundColor: Colors.blac,
       ),
       body: Column(
         children: [
@@ -54,8 +53,6 @@ class _CategoriesState extends State<Categories> {
     FirebaseFirestore _db = FirebaseFirestore.instance;
     List<dynamic> servicesList = [];
 
-    print('Fetching services for salon email: $salonEmail');
-
     try {
       QuerySnapshot servicesSnapshot = await _db
           .collection('services')
@@ -69,6 +66,7 @@ class _CategoriesState extends State<Categories> {
       }).toList();
     } catch (e) {
       print("Error fetching services: $e");
+      return [];
     }
 
     return servicesList;
@@ -76,7 +74,6 @@ class _CategoriesState extends State<Categories> {
 
   @override
   Widget build(BuildContext context) {
-    // No Scaffold or AppBar here since this widget is part of SalonCategoryScreen
     return FutureBuilder<List<dynamic>>(
       future: servicesFuture,
       builder: (context, snapshot) {
@@ -110,7 +107,16 @@ class _CategoriesState extends State<Categories> {
                   'Price: ${service['price'] ?? 'N/A'}\nDescription: ${service['description'] ?? 'No description available.'}',
                 ),
                 onTap: () {
-                  // Navigate to service detail or booking screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CategoryDetails(
+                        category: service,
+                        salonName:
+                            'Your Salon Name', // Fetch the salon name properly or pass it as needed
+                      ),
+                    ),
+                  );
                 },
               ),
             );
@@ -121,21 +127,82 @@ class _CategoriesState extends State<Categories> {
   }
 }
 
-// The AppointmentButton seems to be okay as is. Make sure it's being used appropriately in your navigation stack.
-
-class AppointmentButton extends StatelessWidget {
+class CategoryDetails extends StatelessWidget {
   final Map<String, dynamic> category;
+  final String salonName;
 
-  AppointmentButton({required this.category});
+  CategoryDetails({required this.category, required this.salonName});
 
   @override
   Widget build(BuildContext context) {
+    final String name = category['productName'] ?? 'No Name Provided';
+    final String description =
+        category['description'] ?? 'No description available';
+    final String imageUrl =
+        category['imageUrl'] ?? 'https://placehold.it/200x200';
+    final String price = category['price']?.toString() ?? 'Price not available';
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Appointment'),
+        title: Text(name),
       ),
-      body: Center(
-        child: Text('Book an appointment for ${category['name']}'),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.network(
+              imageUrl,
+              height: 280,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (BuildContext context, Object exception,
+                  StackTrace? stackTrace) {
+                return Text('Failed to load image');
+              },
+            ),
+            SizedBox(height: 16.0),
+            Text(name,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            SizedBox(height: 16.0),
+            Text('Description:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            Text(description, style: TextStyle(fontSize: 14)),
+            SizedBox(height: 16.0),
+            Text('Price: $price',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: Colors.black)),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CustomBookingScreen(
+                      serviceDetails: {
+                        'salonName': salonName,
+                        'serviceName': name,
+                        'servicePrice': price,
+                        'serviceId': category['id'],
+                      },
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color.fromARGB(255, 13, 106, 101),
+                textStyle: TextStyle(fontSize: 18),
+                shape: BeveledRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+              ),
+              child: Text('Save Appointment',
+                  style: TextStyle(color: Colors.white, fontSize: 18)),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -54,6 +54,7 @@ dependencies:
   uuid: ^4.3.3
   booking_calendar: ^1.1.10
   geocoding: ^3.0.0
+  flutter_datetime_picker: ^1.5.1
   
 
   

@@ -1,114 +1,259 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:booking_calendar/booking_calendar.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 
-void main() {
-  initializeDateFormatting()
-      .then((_) => runApp(const BookingCalendarDemoApp()));
+enum SlotStatus { available, selected, booked, lunch }
+
+class TimeSlot {
+  final TimeOfDay time;
+  SlotStatus status;
+
+  TimeSlot({required this.time, required this.status});
 }
 
-class BookingCalendarDemoApp extends StatefulWidget {
-  const BookingCalendarDemoApp({Key? key}) : super(key: key);
+class CustomBookingScreen extends StatefulWidget {
+  final Map<String, dynamic> serviceDetails;
+
+  const CustomBookingScreen({Key? key, required this.serviceDetails})
+      : super(key: key);
 
   @override
-  State<BookingCalendarDemoApp> createState() => _BookingCalendarDemoAppState();
+  _CustomBookingScreenState createState() => _CustomBookingScreenState();
 }
 
-class _BookingCalendarDemoAppState extends State<BookingCalendarDemoApp> {
-  final now = DateTime.now();
-  late BookingService mockBookingService;
+class _CustomBookingScreenState extends State<CustomBookingScreen> {
+  DateTime selectedDate = DateTime.now();
+  TimeOfDay? selectedTime;
 
-  @override
-  void initState() {
-    super.initState();
-    // DateTime.now().startOfDay
-    // DateTime.now().endOfDay
-    mockBookingService = BookingService(
-        serviceName: 'Mock Service',
-        serviceDuration: 30,
-        bookingEnd: DateTime(now.year, now.month, now.day, 18, 0),
-        bookingStart: DateTime(now.year, now.month, now.day, 8, 0));
-  }
-
-  Stream<dynamic>? getBookingStreamMock(
-      {required DateTime end, required DateTime start}) {
-    return Stream.value([]);
-  }
-
-  Future<dynamic> uploadBookingMock(
-      {required BookingService newBooking}) async {
-    await Future.delayed(const Duration(seconds: 1));
-    converted.add(DateTimeRange(
-        start: newBooking.bookingStart, end: newBooking.bookingEnd));
-    print('${newBooking.toJson()} has been uploaded');
-  }
-
-  List<DateTimeRange> converted = [];
-
-  List<DateTimeRange> convertStreamResultMock({required dynamic streamResult}) {
-    ///here you can parse the streamresult and convert to [List<DateTimeRange>]
-    ///take care this is only mock, so if you add today as disabledDays it will still be visible on the first load
-    ///disabledDays will properly work with real data
-    DateTime first = now;
-    DateTime tomorrow = now.add(const Duration(days: 1));
-    DateTime second = now.add(const Duration(minutes: 55));
-    DateTime third = now.subtract(const Duration(minutes: 240));
-    DateTime fourth = now.subtract(const Duration(minutes: 500));
-    converted.add(
-        DateTimeRange(start: first, end: now.add(const Duration(minutes: 30))));
-    converted.add(DateTimeRange(
-        start: second, end: second.add(const Duration(minutes: 23))));
-    converted.add(DateTimeRange(
-        start: third, end: third.add(const Duration(minutes: 15))));
-    converted.add(DateTimeRange(
-        start: fourth, end: fourth.add(const Duration(minutes: 50))));
-
-    //book whole day example
-    converted.add(DateTimeRange(
-        start: DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 5, 0),
-        end: DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 23, 0)));
-    return converted;
-  }
-
-  List<DateTimeRange> generatePauseSlots() {
-    return [
-      DateTimeRange(
-          start: DateTime(now.year, now.month, now.day, 12, 0),
-          end: DateTime(now.year, now.month, now.day, 13, 0))
-    ];
-  }
+  final List<TimeSlot> timeSlots = List.generate(
+    16,
+    (index) => TimeSlot(
+      time: TimeOfDay(hour: 8 + (index ~/ 2), minute: (index % 2) * 30),
+      status: (index % 4 == 0)
+          ? SlotStatus.booked
+          : (index == 7)
+              ? SlotStatus.lunch
+              : SlotStatus.available,
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        title: 'Booking Calendar Demo',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Booking Calendar'),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            SizedBox(height: 16),
+            buildWeekSelector(context),
+            SizedBox(height: 16),
+            buildLegend(context),
+            SizedBox(height: 16),
+            buildTimeSlotsGrid(),
+            SizedBox(height: 20),
+            buildBookingButton(),
+          ],
         ),
-        home: Scaffold(
-          appBar: AppBar(
-            title: const Text('Booking Calendar'),
+      ),
+    );
+  }
+
+  Widget buildWeekSelector(BuildContext context) {
+    DateTime now = DateTime.now();
+    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    List<DateTime> weekDays =
+        List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
+
+    return Container(
+      height: 100,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: weekDays.length,
+        itemBuilder: (context, index) {
+          DateTime weekDay = weekDays[index];
+          bool isSelected = selectedDate.day == weekDay.day;
+
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                selectedDate = DateTime(
+                  weekDay.year,
+                  weekDay.month,
+                  weekDay.day,
+                );
+              });
+            },
+            child: Container(
+              width: 60,
+              decoration: isSelected
+                  ? BoxDecoration(
+                      color: Colors.teal,
+                      borderRadius: BorderRadius.circular(50),
+                    )
+                  : null,
+              alignment: Alignment.center,
+              margin: EdgeInsets.symmetric(horizontal: 4),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    DateFormat('E').format(weekDay), // Weekday
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  Text(
+                    weekDay.day.toString(), // Date
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget buildLegend(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        buildLegendItem(context, "Available", Colors.green),
+        buildLegendItem(context, "Selected", Colors.blue),
+        buildLegendItem(context, "Booked", Colors.red),
+        buildLegendItem(context, "Lunch", Colors.grey),
+      ],
+    );
+  }
+
+  Widget buildLegendItem(BuildContext context, String text, Color color) {
+    return Row(
+      children: <Widget>[
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
           ),
-          body: Center(
-            child: BookingCalendar(
-              bookingService: mockBookingService,
-              convertStreamResultToDateTimeRanges: convertStreamResultMock,
-              getBookingStream: getBookingStreamMock,
-              uploadBooking: uploadBookingMock,
-              pauseSlots: generatePauseSlots(),
-              pauseSlotText: 'LUNCH',
-              hideBreakTime: false,
-              loadingWidget: const Text('Fetching data...'),
-              uploadingWidget: const CircularProgressIndicator(),
-              locale: 'en_US',
-              startingDayOfWeek: StartingDayOfWeek.tuesday,
-              wholeDayIsBookedWidget:
-                  const Text('Sorry, for this day everything is booked'),
-              //disabledDates: [DateTime(2023, 1, 20)],
-              //disabledDays: [6, 7],
+        ),
+        SizedBox(width: 8),
+        Text(text),
+      ],
+    );
+  }
+
+  Widget buildTimeSlotsGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics:
+          NeverScrollableScrollPhysics(), // to disable GridView's scrolling
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: 2.5,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+      ),
+      itemCount: timeSlots.length,
+      itemBuilder: (context, index) {
+        final slot = timeSlots[index];
+        return GestureDetector(
+          onTap: () {
+            updateSlotsOnSelection(slot);
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: slot.status == SlotStatus.available
+                  ? Colors.green
+                  : slot.status == SlotStatus.selected
+                      ? Colors.blue
+                      : slot.status == SlotStatus.booked
+                          ? Colors.red
+                          : Colors.grey, // Lunch slot color
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '${slot.time.format(context)}',
+              style: TextStyle(color: Colors.white),
             ),
           ),
-        ));
+        );
+      },
+    );
+  }
+
+  void updateSlotsOnSelection(TimeSlot selectedSlot) {
+    setState(() {
+      for (var slot in timeSlots) {
+        if (slot == selectedSlot && slot.status == SlotStatus.available) {
+          slot.status = SlotStatus.selected;
+          selectedTime = slot.time;
+        } else if (slot.status == SlotStatus.selected) {
+          slot.status = SlotStatus
+              .available; // Reset only selected slots back to available
+        }
+      }
+    });
+  }
+
+  Widget buildBookingButton() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.teal,
+        padding: EdgeInsets.symmetric(horizontal: 100, vertical: 20),
+      ),
+      onPressed: selectedTime == null ? null : () => _saveBooking(),
+      child: Text(
+        'BOOK',
+        style: TextStyle(fontSize: 20, color: Colors.white),
+      ),
+    );
+  }
+
+  Future<void> _saveBooking() async {
+    try {
+      final bookingData = {
+        'date': selectedDate.toIso8601String(),
+        'time': selectedTime != null ? formatTimeOfDay(selectedTime!) : null,
+        'serviceDetails': widget.serviceDetails,
+      };
+
+      await FirebaseFirestore.instance.collection('Bookings').add(bookingData);
+
+      // Mark the booked slot as 'booked'
+      setState(() {
+        timeSlots.firstWhere((slot) => slot.time == selectedTime).status =
+            SlotStatus.booked;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Booking successful!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save booking: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  String formatTimeOfDay(TimeOfDay tod) {
+    final now = DateTime.now();
+    final dt = DateTime(now.year, now.month, now.day, tod.hour, tod.minute);
+    final format = DateFormat.jm();
+    return format.format(dt);
   }
 }

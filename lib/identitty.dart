@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:style_me/BarberHome.dart';
+import 'package:style_me/LoginBarber.dart';
 import 'package:style_me/SalonScreen.dart';
 
 class CNIC extends StatefulWidget {
@@ -199,7 +200,7 @@ class _CNICState extends State<CNIC> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => BarberScreen()),
+                              builder: (context) => BarberLogin()),
                         );
                       },
                       style: ButtonStyle(

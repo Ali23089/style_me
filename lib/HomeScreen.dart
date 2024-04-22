@@ -9,7 +9,6 @@ import 'package:style_me/Get_User.dart';
 import 'package:style_me/SwithUser.dart';
 import 'package:style_me/UserProfile.dart';
 import 'package:style_me/test1.dart';
-
 import 'SalonScreen.dart'; // Make sure you have this screen created for navigation
 import 'Header.dart';
 
@@ -128,7 +127,6 @@ class _HomeScreenState extends State<HomeScreen> {
           buildSearchBar(),
           buildSalonsNearbySection(),
           buildTopDealsSection(),
-
           buildPopularSalonsSection(context), // Passing context as an argument
         ],
       ),
