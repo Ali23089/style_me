@@ -112,8 +112,7 @@ class _CategoriesState extends State<Categories> {
                     MaterialPageRoute(
                       builder: (context) => CategoryDetails(
                         category: service,
-                        salonName:
-                            'Your Salon Name', // Fetch the salon name properly or pass it as needed
+                        salonName: 'Your Salon Name',
                       ),
                     ),
                   );
@@ -145,63 +144,120 @@ class CategoryDetails extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(name),
+        backgroundColor: Colors.teal,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.network(
-              imageUrl,
-              height: 280,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (BuildContext context, Object exception,
-                  StackTrace? stackTrace) {
-                return Text('Failed to load image');
-              },
-            ),
-            SizedBox(height: 16.0),
-            Text(name,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-            SizedBox(height: 16.0),
-            Text('Description:',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-            Text(description, style: TextStyle(fontSize: 14)),
-            SizedBox(height: 16.0),
-            Text('Price: $price',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: Colors.black)),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CustomBookingScreen(
-                      serviceDetails: {
-                        'salonName': salonName,
-                        'serviceName': name,
-                        'servicePrice': price,
-                        'serviceId': category['id'],
-                      },
-                    ),
+      body: Container(
+        color: Colors.teal,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ListView(
+            children: [
+              Card(
+                elevation: 5,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20.0), // Rounded corners
+                  child: Image.network(
+                    imageUrl,
+                    height: 280,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (BuildContext context, Object exception,
+                        StackTrace? stackTrace) {
+                      return Image.asset(
+                        'assets/images/default_image.png',
+                        height: 280,
+                        width: double.infinity,
+                        fit: BoxFit.cover, // Custom placeholder
+                      );
+                    },
                   ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 13, 106, 101),
-                textStyle: TextStyle(fontSize: 18),
-                shape: BeveledRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
               ),
-              child: Text('Save Appointment',
-                  style: TextStyle(color: Colors.white, fontSize: 18)),
-            ),
-          ],
+              SizedBox(height: 16.0),
+              Card(
+                color: Colors.white, // Card background color
+                elevation: 3,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name,
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 24,
+                              color: Colors.teal)), // Text color
+                      SizedBox(height: 16.0),
+                      Text('Description:',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              color: Colors.teal)), // Text color
+                      Text(description,
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black)), // Regular text color
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 16.0),
+              Card(
+                color: Colors.white, // Card background color
+                elevation: 3,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Price:',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.teal)), // Text color
+                      Text('PKR $price',
+                          style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.black)), // Regular text color
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 24.0),
+              Center(
+                child: ElevatedButton.icon(
+                  icon: Icon(Icons.calendar_today,
+                      color: Colors.teal), // Icon color
+                  label: Text('Book Appointment',
+                      style:
+                          TextStyle(color: Colors.teal)), // Button text color
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CustomBookingScreen(
+                          serviceDetails: {
+                            'salonName': salonName,
+                            'serviceName': name,
+                            'servicePrice': price,
+                            'serviceId': category['id'],
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.minPositive,
+                        34), // Ensure the button is wide enough and has a height of 50 pixels
+                    foregroundColor: Colors.white, // Button background color
+                    textStyle: TextStyle(fontSize: 18),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

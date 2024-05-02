@@ -1,15 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:style_me/Confirmation.dart'; // Adjust the import path if necessary.
 
 enum SlotStatus { available, selected, booked, lunch }
+
+enum ServiceType { salon, home }
 
 class TimeSlot {
   final TimeOfDay time;
   SlotStatus status;
+  ServiceType? serviceType;
 
-  TimeSlot({required this.time, required this.status});
+  TimeSlot({required this.time, required this.status, this.serviceType});
 }
 
 class CustomBookingScreen extends StatefulWidget {
@@ -25,6 +28,8 @@ class CustomBookingScreen extends StatefulWidget {
 class _CustomBookingScreenState extends State<CustomBookingScreen> {
   DateTime selectedDate = DateTime.now();
   TimeOfDay? selectedTime;
+  ServiceType? selectedServiceType;
+  bool isBooking = false;
 
   final List<TimeSlot> timeSlots = List.generate(
     16,
@@ -41,9 +46,7 @@ class _CustomBookingScreenState extends State<CustomBookingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Booking Calendar'),
-      ),
+      appBar: AppBar(title: Text('Booking Calendar')),
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
@@ -53,6 +56,8 @@ class _CustomBookingScreenState extends State<CustomBookingScreen> {
             buildLegend(context),
             SizedBox(height: 16),
             buildTimeSlotsGrid(),
+            SizedBox(height: 16),
+            buildServiceTypeSelector(),
             SizedBox(height: 20),
             buildBookingButton(),
           ],
@@ -79,11 +84,8 @@ class _CustomBookingScreenState extends State<CustomBookingScreen> {
           return GestureDetector(
             onTap: () {
               setState(() {
-                selectedDate = DateTime(
-                  weekDay.year,
-                  weekDay.month,
-                  weekDay.day,
-                );
+                selectedDate =
+                    DateTime(weekDay.year, weekDay.month, weekDay.day);
               });
             },
             child: Container(
@@ -100,17 +102,15 @@ class _CustomBookingScreenState extends State<CustomBookingScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    DateFormat('E').format(weekDay), // Weekday
+                    DateFormat('E').format(weekDay),
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.black,
-                    ),
+                        color: isSelected ? Colors.white : Colors.black),
                   ),
                   Text(
-                    weekDay.day.toString(), // Date
+                    weekDay.day.toString(),
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
+                        color: isSelected ? Colors.white : Colors.black,
+                        fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -139,10 +139,7 @@ class _CustomBookingScreenState extends State<CustomBookingScreen> {
         Container(
           width: 16,
           height: 16,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         SizedBox(width: 8),
         Text(text),
@@ -153,8 +150,7 @@ class _CustomBookingScreenState extends State<CustomBookingScreen> {
   Widget buildTimeSlotsGrid() {
     return GridView.builder(
       shrinkWrap: true,
-      physics:
-          NeverScrollableScrollPhysics(), // to disable GridView's scrolling
+      physics: NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         childAspectRatio: 2.5,
@@ -166,42 +162,60 @@ class _CustomBookingScreenState extends State<CustomBookingScreen> {
         final slot = timeSlots[index];
         return GestureDetector(
           onTap: () {
-            updateSlotsOnSelection(slot);
+            if (slot.status == SlotStatus.available) {
+              selectTimeSlot(slot);
+            }
           },
-          child: Container(
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
             decoration: BoxDecoration(
-              color: slot.status == SlotStatus.available
-                  ? Colors.green
-                  : slot.status == SlotStatus.selected
-                      ? Colors.blue
-                      : slot.status == SlotStatus.booked
-                          ? Colors.red
-                          : Colors.grey, // Lunch slot color
+              color: getColorForStatus(slot.status),
               borderRadius: BorderRadius.circular(8),
             ),
             alignment: Alignment.center,
-            child: Text(
-              '${slot.time.format(context)}',
-              style: TextStyle(color: Colors.white),
-            ),
+            child: Text('${slot.time.format(context)}',
+                style: TextStyle(color: Colors.white)),
           ),
         );
       },
     );
   }
 
-  void updateSlotsOnSelection(TimeSlot selectedSlot) {
+  void selectTimeSlot(TimeSlot slot) {
     setState(() {
-      for (var slot in timeSlots) {
-        if (slot == selectedSlot && slot.status == SlotStatus.available) {
-          slot.status = SlotStatus.selected;
-          selectedTime = slot.time;
-        } else if (slot.status == SlotStatus.selected) {
-          slot.status = SlotStatus
-              .available; // Reset only selected slots back to available
-        }
-      }
+      resetAllSlots();
+      selectedTime = slot.time;
+      slot.status = SlotStatus.selected;
     });
+  }
+
+  void resetAllSlots() {
+    for (var slot in timeSlots) {
+      if (slot.status == SlotStatus.selected) {
+        slot.status = SlotStatus.available;
+      }
+    }
+  }
+
+  Widget buildServiceTypeSelector() {
+    return Visibility(
+      visible: selectedTime != null, // Only show if a time has been selected
+      child: Wrap(
+        spacing: 8.0, // gap between adjacent chips
+        children: ServiceType.values
+            .map((type) => ChoiceChip(
+                  label: Text(type == ServiceType.salon ? "Salon" : "Home"),
+                  selected: selectedServiceType == type,
+                  onSelected: (selected) {
+                    setState(() {
+                      selectedServiceType = type;
+                    });
+                  },
+                ))
+            .toList(),
+      ),
+    );
   }
 
   Widget buildBookingButton() {
@@ -209,38 +223,54 @@ class _CustomBookingScreenState extends State<CustomBookingScreen> {
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.teal,
         padding: EdgeInsets.symmetric(horizontal: 100, vertical: 20),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.0)),
+        elevation: 5,
       ),
-      onPressed: selectedTime == null ? null : () => _saveBooking(),
-      child: Text(
-        'BOOK',
-        style: TextStyle(fontSize: 20, color: Colors.white),
-      ),
+      onPressed:
+          (selectedTime != null && selectedServiceType != null && !isBooking)
+              ? () => _saveBooking()
+              : null,
+      child: isBooking
+          ? CircularProgressIndicator(color: Colors.white)
+          : Text('BOOK', style: TextStyle(fontSize: 20, color: Colors.white)),
     );
   }
 
   Future<void> _saveBooking() async {
+    setState(() {
+      isBooking = true;
+    });
+
+    await Future.delayed(Duration(seconds: 2));
+
     try {
       final bookingData = {
         'date': selectedDate.toIso8601String(),
         'time': selectedTime != null ? formatTimeOfDay(selectedTime!) : null,
+        'serviceType': selectedServiceType.toString(),
         'serviceDetails': widget.serviceDetails,
+        'salonName': widget.serviceDetails['salonName'],
       };
 
       await FirebaseFirestore.instance.collection('Bookings').add(bookingData);
 
-      // Mark the booked slot as 'booked'
       setState(() {
         timeSlots.firstWhere((slot) => slot.time == selectedTime).status =
             SlotStatus.booked;
+        isBooking = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Booking successful!'),
-          backgroundColor: Colors.green,
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) =>
+              BookingConfirmationScreen(bookingDetails: bookingData),
         ),
       );
     } catch (e) {
+      setState(() {
+        isBooking = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to save booking: $e'),
@@ -255,5 +285,20 @@ class _CustomBookingScreenState extends State<CustomBookingScreen> {
     final dt = DateTime(now.year, now.month, now.day, tod.hour, tod.minute);
     final format = DateFormat.jm();
     return format.format(dt);
+  }
+
+  Color getColorForStatus(SlotStatus status) {
+    switch (status) {
+      case SlotStatus.available:
+        return Colors.green;
+      case SlotStatus.selected:
+        return Colors.blue;
+      case SlotStatus.booked:
+        return Colors.red;
+      case SlotStatus.lunch:
+        return Colors.grey;
+      default:
+        return Colors.black;
+    }
   }
 }

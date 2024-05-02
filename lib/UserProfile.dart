@@ -104,15 +104,16 @@ class _UserProfileState extends State<UserProfile> {
         title: Text(
           'Profile',
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
+            fontSize: 24,
           ),
         ),
         actions: <Widget>[
           IconButton(
             icon: Icon(
               Icons.settings,
-              color: Colors.black,
+              color: Colors.white,
             ),
             onPressed: () {
               // Add navigation to settings page
@@ -124,41 +125,33 @@ class _UserProfileState extends State<UserProfile> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            SizedBox(height: 20),
+            SizedBox(height: 30),
             Center(
               child: Stack(
                 children: [
                   CircleAvatar(
-                    radius: 60,
+                    radius: 80,
                     backgroundImage: _imageFile != null
                         ? FileImage(_imageFile!)
                         : (userData['profileImageUrl'] != null
                             ? NetworkImage(userData['profileImageUrl'])
-                            : AssetImage('assets/placeholder_image.jpg')
+                            : AssetImage('assets/placeholder_image.png')
                                 as ImageProvider),
                   ),
                   if (isEditMode)
                     Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                          ),
-                          onPressed: _pickImage,
-                        ),
+                      bottom: 10,
+                      right: 10,
+                      child: IconButton(
+                        icon: Icon(Icons.camera_alt, size: 28),
+                        color: Colors.teal,
+                        onPressed: _pickImage,
                       ),
                     ),
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 30),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Column(
@@ -167,27 +160,32 @@ class _UserProfileState extends State<UserProfile> {
                   Text(
                     '${userData['Name'] ?? 'Unknown'}',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
+                      color: Colors.teal,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: 10),
                   Text(
                     '${userData['Email'] ?? 'Unknown'}',
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: 10),
                   Text(
                     'Phone: ${userData['PhoneNumber'] ?? 'Unknown'}',
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 30),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.teal, // Text color
+                ),
                 onPressed: () {
                   setState(() {
                     isEditMode = true; // Switch to edit mode
@@ -195,7 +193,7 @@ class _UserProfileState extends State<UserProfile> {
                 },
                 child: Text(
                   'Edit Profile',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
             ),
@@ -210,33 +208,49 @@ class _UserProfileState extends State<UserProfile> {
                       initialValue: userData['Name'],
                       decoration: InputDecoration(
                         labelText: 'Name',
-                        labelStyle: TextStyle(fontWeight: FontWeight.bold),
+                        labelStyle: TextStyle(
+                            color: Colors.teal, fontWeight: FontWeight.bold),
+                        border: OutlineInputBorder(),
                       ),
                       onChanged: (value) => setState(() => newName = value),
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: 20),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                      ),
                       onPressed: _pickImage,
-                      child: Text('Change Profile Photo'),
+                      child: Text(
+                        'Change Profile Photo',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: 20),
                     TextFormField(
                       initialValue: userData['PhoneNumber'],
                       decoration: InputDecoration(
                         labelText: 'Phone Number',
-                        labelStyle: TextStyle(fontWeight: FontWeight.bold),
+                        labelStyle: TextStyle(
+                            color: Colors.teal, fontWeight: FontWeight.bold),
+                        border: OutlineInputBorder(),
                       ),
                       onChanged: (value) =>
                           setState(() => newPhoneNumber = value),
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 30),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                      ),
                       onPressed: () {
                         _updateUserData();
                       },
                       child: Text(
                         'Save Changes',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
                       ),
                     ),
                   ],

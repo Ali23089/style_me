@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:style_me/Barbers.dart';
 import 'package:style_me/Categories.dart';
 import 'package:style_me/Details.dart';
 
 class SalonScreen extends StatefulWidget {
-  final String salonEmail; // Define the salon email here
+  final String salonEmail;
 
-  const SalonScreen({Key? key, required this.salonEmail})
-      : super(key: key); // Modify the constructor to accept it
+  const SalonScreen({Key? key, required this.salonEmail}) : super(key: key);
 
   @override
   State<SalonScreen> createState() => _SalonScreenState();
@@ -88,12 +88,12 @@ class _SalonScreenState extends State<SalonScreen>
                     child: Center(
                       child: Text(
                         screenNames[index],
-                        style: TextStyle(
-                          fontFamily: "times new roman",
-                          fontWeight: FontWeight.w500,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
                           color: current == index
-                              ? Colors.black
-                              : const Color.fromARGB(221, 76, 76, 76),
+                              ? Color.fromARGB(255, 13, 106, 101)
+                              : Colors.white,
                         ),
                       ),
                     ),
@@ -111,12 +111,8 @@ class _SalonScreenState extends State<SalonScreen>
                 });
               },
               children: [
-                Categories(
-                    salonEmail:
-                        widget.salonEmail), // Pass the salonEmail to Categories
-                Details(
-                    salonEmail:
-                        widget.salonEmail), // Pass the salonEmail to Details
+                Categories(salonEmail: widget.salonEmail),
+                Details(salonEmail: widget.salonEmail),
                 //Barbers(salonEmail: widget.salonEmail), // You might want to pass the salonEmail to Barbers as well if it's needed
               ],
             ),

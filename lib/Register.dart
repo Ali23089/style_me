@@ -13,9 +13,10 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  late Color mycolor;
+  late Color myColor;
   late Size mediaSize;
   bool _isPasswordVisible = false;
+  final _formKey = GlobalKey<FormState>(); // GlobalKey for form
 
   final nameController = TextEditingController();
   final emailController = TextEditingController();
@@ -23,7 +24,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    mycolor = Theme.of(context).primaryColor;
+    myColor = Theme.of(context).primaryColor;
     mediaSize = MediaQuery.of(context).size;
 
     return Scaffold(
@@ -81,139 +82,133 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget _buildForm() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 26.0),
-      child: SizedBox(
-        width: double.infinity,
-        height: 500,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Sign up",
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: "Name",
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: "Email",
-                suffixIcon: Icon(Icons.email),
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: passwordController,
-              obscureText: !_isPasswordVisible,
-              decoration: InputDecoration(
-                labelText: "Password",
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _isPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _isPasswordVisible = !_isPasswordVisible;
-                    });
-                  },
+    return Form(
+      key: _formKey,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 26.0),
+        child: SizedBox(
+          width: double.infinity,
+          height: 500,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Sign up",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  // Create user using Firebase Authentication
-                  UserCredential userCredential = await FirebaseAuth.instance
-                      .createUserWithEmailAndPassword(
-                          email: emailController.text,
-                          password: passwordController.text);
-
-                  // Send verification email
-                  await userCredential.user?.sendEmailVerification();
-
-                  // Store additional user details in Firestore after successful authentication
-                  if (userCredential.user != null) {
-                    CollectionReference collRef =
-                        FirebaseFirestore.instance.collection('User');
-                    collRef.add({
-                      'Name': nameController.text,
-                      'Email': emailController.text,
-                      'Password': passwordController.text,
-                    });
-
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => Loginpage()),
-                    );
-
-                    // Show a success message
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            'Registration successful. Verification email sent!'),
-                      ),
-                    );
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: "Name",
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter your name';
                   }
-                } catch (e) {
-                  // Handle any errors related to Firebase Authentication
-                  print('Error during registration: $e');
-                  // You can show a user-friendly error message using a dialog or SnackBar
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Registration failed. Please try again.'),
-                    ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                shape: StadiumBorder(),
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                shadowColor: Colors.transparent,
-                minimumSize: Size.fromHeight(60),
+                  // Additional check for name format (optional regex)
+                  if (!RegExp(r'^[a-zA-Z ]+$').hasMatch(value)) {
+                    return 'Please enter a valid name (no numbers or special characters)';
+                  }
+                  return null;
+                },
               ),
-              child: Ink(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color.fromARGB(255, 6, 35, 28),
-                      Color.fromARGB(255, 4, 172, 163),
-                    ],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(30),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  labelText: "Email",
+                  suffixIcon: Icon(Icons.email),
                 ),
-                child: Container(
-                  constraints: BoxConstraints(maxWidth: 300.0, minHeight: 50.0),
-                  alignment: Alignment.center,
-                  child: Text(
-                    "Register",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an email';
+                  } else if (!value.contains('@')) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: passwordController,
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
+                  labelText: "Password",
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a password';
+                  } else if (value.length < 8) {
+                    return 'Password must be at least 8 characters long';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    try {
+                      // Code to handle user registration
+                    } catch (e) {
+                      // Handle errors
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  shape: StadiumBorder(),
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
+                  minimumSize: Size.fromHeight(60),
+                ),
+                child: Ink(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Color.fromARGB(255, 6, 35, 28),
+                        Color.fromARGB(255, 4, 172, 163),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Container(
+                    constraints:
+                        BoxConstraints(maxWidth: 300.0, minHeight: 50.0),
+                    alignment: Alignment.center,
+                    child: Text(
+                      "Register",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

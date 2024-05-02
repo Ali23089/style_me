@@ -3,12 +3,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:style_me/Appointment.dart';
+import 'package:style_me/Blog.dart';
 import 'package:style_me/Booking.dart';
 import 'package:style_me/Categories.dart';
+import 'package:style_me/Feedback.dart';
 import 'package:style_me/Get_User.dart';
+import 'package:style_me/LoginBarber.dart';
+import 'package:style_me/Settings.dart';
+import 'package:style_me/SetupBussiness.dart';
 import 'package:style_me/SwithUser.dart';
 import 'package:style_me/UserProfile.dart';
+import 'package:style_me/privacyPolicy.dart';
 import 'package:style_me/test1.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'SalonScreen.dart'; // Make sure you have this screen created for navigation
 import 'Header.dart';
 
@@ -54,12 +62,15 @@ class DatabaseService {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  DrawerSections currentPage = DrawerSections.Dashboard; // Set default page
+  DrawerSections currentPage = DrawerSections.Dashboard;
+  // Set default page
+  TextEditingController searchController = TextEditingController();
+  List<Map<String, dynamic>> searchResults = [];
   List<Map<String, dynamic>> salons = [];
   int _selectedItem = 0;
   var _pageData = [
     HomeScreen(),
-    HistoryScreen(),
+    BookingHistory(),
     Get_Location(),
     UserProfile()
   ]; // Ensure you have these screens available
@@ -67,7 +78,63 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    fetchSalons();
+    fetchSalons2();
+    searchController.addListener(onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  void onSearchChanged() {
+    if (searchController.text.isEmpty) {
+      setState(() {
+        searchResults = [];
+      });
+    } else {
+      searchSalonsByName(searchController.text);
+    }
+  }
+
+  Future<void> searchSalonsByName(String query) async {
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('Salons')
+        .where('salonName', isGreaterThanOrEqualTo: query)
+        .where('salonName', isLessThanOrEqualTo: query + '\uf8ff')
+        .get();
+
+    List<Map<String, dynamic>> fetchedSalons =
+        snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+
+    setState(() {
+      searchResults = fetchedSalons;
+    });
+  }
+
+  void fetchSalons2() async {
+    try {
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('Salons').get();
+      List<Map<String, dynamic>> fetchedSalons = snapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        print("Fetched Salon: $data"); // Debug output
+        return {
+          'name': data['salonName'] ??
+              'No Name', // Provide default values to avoid nulls
+          'image': data['salonImageUrl'] ?? 'https://via.placeholder.com/150',
+          'rating': data['rating'] ?? 0,
+          'email': data['email'] ?? 'No Email',
+        };
+      }).toList();
+
+      setState(() {
+        salons = fetchedSalons;
+      });
+    } catch (e) {
+      print("Error fetching salons: $e"); // Error handling
+    }
   }
 
   void fetchSalons() async {
@@ -82,6 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'email': salon['email'],
         });
       }
+
       setState(() {
         salons = fetchedSalons;
       });
@@ -93,16 +161,28 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.white),
-        title: Text('StyleMe',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(
+          'StyleMe',
+          style: GoogleFonts.nunitoSans(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         centerTitle: true,
         backgroundColor: Color.fromARGB(255, 13, 106, 101),
         actions: [
-          IconButton(icon: Icon(Icons.notifications), onPressed: () {}),
+          IconButton(
+            icon: Icon(Icons.notifications),
+            onPressed: () {
+              // Action to be taken when notification icon is pressed
+            },
+          ),
         ],
       ),
-      drawer: buildDrawer(),
-      bottomNavigationBar: buildBottomNavBar(),
+      drawer:
+          buildDrawer(), // You might want to control visibility based on state as well
+      bottomNavigationBar:
+          searchResults.isNotEmpty ? null : buildBottomNavBar(),
       body: buildBodyContent(),
     );
   }
@@ -125,9 +205,78 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           buildSearchBar(),
-          buildSalonsNearbySection(),
-          buildTopDealsSection(),
-          buildPopularSalonsSection(context), // Passing context as an argument
+          searchResults.isNotEmpty
+              ? buildSearchResults()
+              : buildRegularContent(),
+        ],
+      ),
+    );
+  }
+
+  Widget buildRegularContent() {
+    return Column(
+      children: [
+        buildSalonsNearbySection(),
+        buildTopDealsSection(),
+        buildPopularSalonsSection(context),
+      ],
+    );
+  }
+
+  Widget buildSalonCard(Map<String, dynamic> salon) {
+    return Container(
+      width: 200,
+      margin: EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.teal, width: 2),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Image.network(
+              salon['salonImageUrl'] ?? 'https://via.placeholder.com/150',
+              width: 500,
+              height: 150,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Image.network(
+                'https://via.placeholder.com/150',
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(8),
+            child: Text(
+              salon['salonName'] ?? 'No Name',
+              style: GoogleFonts.prompt(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SalonScreen(salonEmail: salon['email']),
+                ),
+              );
+            },
+            child: Text(
+              'View Details',
+              style: GoogleFonts.prompt(
+                fontWeight: FontWeight.w800,
+                color: Colors.teal,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -137,12 +286,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: TextFormField(
+        controller: searchController,
         decoration: InputDecoration(
           prefixIcon: Icon(Icons.search),
           hintText: 'Search Salon',
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(50.0)),
         ),
       ),
+    );
+  }
+
+  Widget buildSearchResults() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemCount: searchResults.length,
+      itemBuilder: (context, index) {
+        return buildSalonCard(searchResults[index]);
+      },
     );
   }
 
@@ -178,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(
             "Top Deals",
-            style: TextStyle(
+            style: GoogleFonts.montserrat(
               fontSize: 20.0,
               fontWeight: FontWeight.bold,
               color: tealColor,
@@ -285,7 +446,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget buildSalonsNearbySection() {
-    // Define your teal color here for convenience
     Color tealColor = Colors.teal;
 
     // Placeholder image URL - replace with an appropriate one for your app
@@ -298,10 +458,10 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(
             "Salons Nearby",
-            style: TextStyle(
+            style: GoogleFonts.montserrat(
               fontSize: 20.0,
               fontWeight: FontWeight.bold,
-              color: tealColor, // Changed to teal color
+              color: tealColor,
             ),
           ),
         ),
@@ -319,23 +479,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.white, // Set the card background to white
                   shape: RoundedRectangleBorder(
                     side: BorderSide(color: tealColor, width: 2), // Teal border
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        width: 150, // Adjusted image width
-                        height: 100, // Adjusted image height
+                        width: 180,
+                        height: 100,
                         child: ClipRRect(
+                          //round corner border radius cliped
                           borderRadius:
-                              BorderRadius.circular(4), // Rounded corners
+                              BorderRadius.circular(20), // Rounded corners
                           child: Image.network(
                             salons[index]['image'] ?? placeholderImageUrl,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
                                 Image.network(
-                              placeholderImageUrl, // Placeholder image
+                              placeholderImageUrl,
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -345,9 +506,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: EdgeInsets.all(8),
                         child: Text(
                           salons[index]['name'] ?? 'No Name',
-                          style: TextStyle(
+                          style: GoogleFonts.prompt(
+                            fontSize: 16.0,
                             fontWeight: FontWeight.bold,
-                            color: tealColor, // Changed to teal color
+                            color: tealColor,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -361,7 +523,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : Icons.star_border,
                             color: i < (salons[index]['rating'] ?? 0)
                                 ? tealColor
-                                : Colors.grey, // Teal stars for rating
+                                : Colors.grey,
                           );
                         }),
                       ),
@@ -384,8 +546,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                         child: Text(
                           'View Details',
-                          style: TextStyle(
-                            color: tealColor, // Text in teal color
+                          style: GoogleFonts.prompt(
+                            fontWeight: FontWeight.w800,
+                            color: tealColor,
                           ),
                         ),
                       ),
@@ -401,13 +564,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget buildPopularSalonsSection(BuildContext context) {
-    // Define your teal color here for convenience
     Color tealColor = Colors.teal;
 
-    // Placeholder image URL - replace with an appropriate one for your app
     String placeholderImageUrl = 'https://via.placeholder.com/150';
 
-    // Assuming 'salons' is a list of salon data you've fetched from your database
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -415,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(
             "Popular Salons",
-            style: TextStyle(
+            style: GoogleFonts.montserrat(
               fontSize: 20.0,
               fontWeight: FontWeight.bold,
               color: tealColor,
@@ -423,28 +583,26 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         ListView.builder(
-          shrinkWrap:
-              true, // Use shrinkWrap to limit the ListView to the size of its content
+          shrinkWrap: true,
           physics:
-              NeverScrollableScrollPhysics(), // Use this if you want to disable the scrolling of this ListView
+              NeverScrollableScrollPhysics(), // Disables scrolling of this ListView
           itemCount: salons.length, // The count of salons to display
           itemBuilder: (context, index) {
             return Card(
               margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              color: Colors.white, // Set the card background to white
+              color: Colors.white,
               shape: RoundedRectangleBorder(
                 side: BorderSide(color: tealColor, width: 2), // Teal border
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(30),
               ),
               child: Column(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(4), // Rounded corners
+                    borderRadius: BorderRadius.circular(30), // Rounded corners
                     child: Image.network(
                       salons[index]['image'] ?? placeholderImageUrl,
-                      width: double
-                          .infinity, // Makes the image expand to fill the width of the card
-                      height: 150, // Fixed height for all images
+                      width: double.infinity,
+                      height: 150,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) =>
                           Image.network(
@@ -453,32 +611,38 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
+                  SizedBox(height: 8),
                   Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Text(
-                      salons[index]['name'] ?? 'No Name',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: tealColor,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(5, (i) {
-                        return Icon(
-                          i < (salons[index]['rating'] ?? 0)
-                              ? Icons.star
-                              : Icons.star_border,
-                          color: i < (salons[index]['rating'] ?? 0)
-                              ? tealColor
-                              : Colors.grey, // Teal stars for rating
-                          size: 20, // Setting a fixed size for all icons
-                        );
-                      }),
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            salons[index]['name'] ?? 'No Name',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: tealColor,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(5, (i) {
+                            return Icon(
+                              i < (salons[index]['rating'] ?? 0)
+                                  ? Icons.star
+                                  : Icons.star_border,
+                              color: i < (salons[index]['rating'] ?? 0)
+                                  ? tealColor
+                                  : Colors.grey, // Teal stars for rating
+                              size: 20, // Setting a fixed size for all icons
+                            );
+                          }),
+                        ),
+                      ],
                     ),
                   ),
                   TextButton(
@@ -501,7 +665,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     child: Text(
                       'View Details',
-                      style: TextStyle(
+                      style: GoogleFonts.prompt(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
                         color: tealColor, // Text in teal color
                       ),
                     ),
@@ -575,7 +741,7 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             currentPage = DrawerSections.values[id - 1];
           });
-          Navigator.pop(context); // Close the drawer
+          // Navigator.pop(context);
         },
         child: Padding(
           padding: EdgeInsets.all(15.0),
@@ -597,8 +763,8 @@ class _HomeScreenState extends State<HomeScreen> {
         height: 50,
         child: ElevatedButton(
           onPressed: () {
-            Navigator.push(
-                context, MaterialPageRoute(builder: (context) => SwitchUser()));
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => BarberLogin()));
           },
           style: ButtonStyle(
               backgroundColor:

@@ -16,15 +16,16 @@ class Loginpage extends StatefulWidget {
 class _LoginpageState extends State<Loginpage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>(); // Form key
 
-  late Color mycolor;
+  late Color myColor;
   late Size mediaSize;
   bool rememberUser = false;
   bool passToggle = true;
 
   @override
   Widget build(BuildContext context) {
-    mycolor = Theme.of(context).primaryColor;
+    myColor = Theme.of(context).primaryColor;
     mediaSize = MediaQuery.of(context).size;
 
     return Scaffold(
@@ -68,135 +69,152 @@ class _LoginpageState extends State<Loginpage> {
               ),
               height: double.infinity,
               width: double.infinity,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20.0, right: 20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextFormField(
-                      controller: emailController,
-                      decoration: InputDecoration(
-                        labelText: "Email Address",
-                        labelStyle: TextStyle(color: Colors.grey),
-                        prefixIcon: Icon(Icons.email),
-                        suffixIcon: Icon(Icons.done),
+              child: Form(
+                key: _formKey,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 20.0, right: 20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextFormField(
+                        controller: emailController,
+                        decoration: InputDecoration(
+                          labelText: "Email Address",
+                          labelStyle: TextStyle(color: Colors.grey),
+                          prefixIcon: Icon(Icons.email),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your email address';
+                          }
+                          if (!value.contains('@') || !value.contains('.')) {
+                            return 'Enter a valid email address';
+                          }
+                          return null;
+                        },
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextFormField(
-                      controller: passwordController,
-                      obscureText: !passToggle,
-                      decoration: InputDecoration(
-                        labelText: "Password",
-                        labelStyle: TextStyle(color: Colors.grey),
-                        prefixIcon: Icon(Icons.lock),
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              passToggle = !passToggle;
-                            });
-                          },
-                          icon: Icon(
-                            passToggle
-                                ? Icons.visibility
-                                : Icons.visibility_off,
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        controller: passwordController,
+                        obscureText: !passToggle,
+                        decoration: InputDecoration(
+                          labelText: "Password",
+                          labelStyle: TextStyle(color: Colors.grey),
+                          prefixIcon: Icon(Icons.lock),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                passToggle = !passToggle;
+                              });
+                            },
+                            icon: Icon(
+                              passToggle
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a password';
+                          }
+                          if (value.length < 6) {
+                            return 'Password must be at least 6 characters long';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: rememberUser,
+                                onChanged: (value) {
+                                  setState(() {
+                                    rememberUser = value!;
+                                  });
+                                },
+                              ),
+                              Text("Remember me",
+                                  style: TextStyle(color: Colors.grey)),
+                            ],
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ForgetPassword()),
+                              );
+                            },
+                            child: Text("Forgot Password",
+                                style: TextStyle(color: Colors.grey)),
+                          ),
+                        ],
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            // Perform login
+                            signInWithEmailAndPassword(emailController.text,
+                                passwordController.text, context);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          shape: StadiumBorder(),
+                          backgroundColor: Colors.transparent,
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
+                          minimumSize: Size.fromHeight(60),
+                        ),
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Color.fromARGB(255, 6, 35, 28),
+                                Color.fromARGB(255, 4, 172, 163),
+                              ],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Container(
+                            constraints: BoxConstraints(
+                                maxWidth: 300.0, minHeight: 50.0),
+                            alignment: Alignment.center,
+                            child: Text(
+                              "LOGIN",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: rememberUser,
-                              onChanged: (value) {
-                                setState(() {
-                                  rememberUser = value!;
-                                });
-                              },
-                            ),
-                            Text("Remember me",
-                                style: TextStyle(color: Colors.grey)),
-                          ],
-                        ),
-                        TextButton(
+                      Container(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
                           onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => ForgetPassword()),
+                                  builder: (context) => RegisterPage()),
                             );
                           },
-                          child: Text("Forgot Password",
-                              style: TextStyle(color: Colors.grey)),
-                        ),
-                      ],
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        signInWithEmailAndPassword(emailController.text,
-                            passwordController.text, context);
-                        /* Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  MyWidget(userId: "8vRHKVWCCHPpMDLiCLdS")),
-                        );*/
-                      },
-                      style: ElevatedButton.styleFrom(
-                        shape: StadiumBorder(),
-                        backgroundColor: Colors.transparent,
-                        elevation: 0,
-                        shadowColor: Colors.transparent,
-                        minimumSize: Size.fromHeight(60),
-                      ),
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color.fromARGB(255, 6, 35, 28),
-                              Color.fromARGB(255, 4, 172, 163),
-                            ],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Container(
-                          constraints:
-                              BoxConstraints(maxWidth: 300.0, minHeight: 50.0),
-                          alignment: Alignment.center,
                           child: Text(
-                            "LOGIN",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            "Create an Account",
+                            style: TextStyle(color: Colors.black),
                           ),
                         ),
-                      ),
-                    ),
-                    Container(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => RegisterPage()),
-                          );
-                        },
-                        child: Text(
-                          "Create an Account",
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ),
-                    )
-                  ],
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),
