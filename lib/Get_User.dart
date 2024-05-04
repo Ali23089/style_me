@@ -16,147 +16,141 @@ class Get_Location extends StatefulWidget {
 
 class _Get_LocationState extends State<Get_Location> {
   final Completer<GoogleMapController> _controller = Completer();
-
-  static CameraPosition _initialPosition = CameraPosition(
-    target: LatLng(31.58894855147015, 74.42132446174648),
-    zoom: 15,
-  );
-
-  final List<Marker> myMarker = [];
-  final List<Marker> markerList = const [
-    Marker(
-        markerId: MarkerId("First"),
-        position: LatLng(31.58894855147015, 74.42132446174648),
-        infoWindow: InfoWindow(title: 'My Home')),
-    Marker(
-        markerId: MarkerId("Second"),
-        position: LatLng(31.49030894293375, 74.38697665082525),
-        infoWindow: InfoWindow(title: 'Salon')),
-    Marker(
-        markerId: MarkerId("Third"),
-        position: LatLng(30.17663657161897, 71.48763589841042),
-        infoWindow: InfoWindow(title: 'Gol Plot')),
-  ];
-
-  late Marker _currentLocationMarker;
+  Set<Marker> myMarkers = {};
 
   @override
   void initState() {
     super.initState();
-    myMarker.addAll(markerList);
-    _currentLocationMarker = Marker(
-      markerId: MarkerId('Current'),
-      position: LatLng(0, 0),
-      infoWindow: InfoWindow(title: 'Current Location'),
-    );
+    _initializeMarkers();
     _saveLocationOnLogin();
   }
 
-  Future<Position> getLocation() async {
-    await Geolocator.requestPermission()
-        .then((value) {})
-        .onError((error, stackTrace) {
-      print('error$error');
-    });
+  void _initializeMarkers() {
+    myMarkers.add(Marker(
+      markerId: MarkerId("First"),
+      position: LatLng(31.58894855147015, 74.42132446174648),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
+      infoWindow: InfoWindow(title: 'My Home'),
+    ));
+    myMarkers.add(Marker(
+      markerId: MarkerId("Second"),
+      position: LatLng(31.49030894293375, 74.38697665082525),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+      infoWindow: InfoWindow(title: 'Salon'),
+    ));
+    myMarkers.add(Marker(
+      markerId: MarkerId("Third"),
+      position: LatLng(30.17663657161897, 71.48763589841042),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+      infoWindow: InfoWindow(title: 'Gol Plot'),
+    ));
+  }
 
+  Future<void> _saveLocationOnLogin() async {
+    FirebaseAuth.instance.authStateChanges().listen((user) async {
+      if (user != null) {
+        Position position = await _determinePosition();
+        _saveLocationToFirestore(user.email, position);
+      }
+    });
+  }
+
+  Future<Position> _determinePosition() async {
+    LocationPermission permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      throw Exception('Location permission denied');
+    }
     return await Geolocator.getCurrentPosition();
   }
 
-  void _saveLocationOnLogin() {
-    FirebaseAuth.instance.authStateChanges().listen((user) {
-      if (user != null) {
-        // User is logged in, save location
-        _saveLocationToFirestore();
+  Future<void> _saveLocationToFirestore(
+      String? email, Position position) async {
+    if (email != null) {
+      var userSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .where('Email', isEqualTo: email)
+          .get();
+      if (userSnapshot.docs.isNotEmpty) {
+        var userId = userSnapshot.docs.first.id;
+        await FirebaseFirestore.instance.collection('User').doc(userId).update({
+          'Location': {
+            'latitude': position.latitude,
+            'longitude': position.longitude
+          },
+        });
+        setState(() {
+          myMarkers.add(Marker(
+            markerId: MarkerId('Current'),
+            position: LatLng(position.latitude, position.longitude),
+            icon:
+                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+            infoWindow: InfoWindow(title: 'Your Location'),
+          ));
+        });
       }
-    });
-  }
-
-  Future<void> _saveLocationToFirestore() async {
-    try {
-      Position position = await getLocation();
-      String? userEmail = FirebaseAuth.instance.currentUser?.email;
-
-      if (userEmail != null) {
-        // Get user document reference by email
-        QuerySnapshot userSnapshot = await FirebaseFirestore.instance
-            .collection('User')
-            .where('Email', isEqualTo: userEmail)
-            .get();
-
-        if (userSnapshot.docs.isNotEmpty) {
-          String userId = userSnapshot.docs.first.id;
-          // Save location to Firestore
-          await FirebaseFirestore.instance
-              .collection('User')
-              .doc(userId)
-              .update({
-            'Location': {
-              'latitude': position.latitude,
-              'longitude': position.longitude,
-            },
-          });
-        }
-      }
-      // Update marker position
-      setState(() {
-        _currentLocationMarker = _currentLocationMarker.copyWith(
-          positionParam: LatLng(position.latitude, position.longitude),
-        );
-      });
-    } catch (e) {
-      print('Error saving location: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          GoogleMap(
-            initialCameraPosition: _initialPosition,
-            mapType: MapType.normal,
-            markers: Set<Marker>.of([...myMarker, _currentLocationMarker]),
-            onMapCreated: (GoogleMapController controller) {
-              _controller.complete(controller);
-            },
-          ),
-          Positioned(
-            bottom: 20,
-            left: 20,
-            child: ElevatedButton(
-              onPressed: () async {
-                await _saveLocationToFirestore();
-                final GoogleMapController controller = await _controller.future;
-                controller.animateCamera(
-                    CameraUpdate.newLatLng(_currentLocationMarker.position));
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Text('Select Location', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.teal,
+      ),
+      body: GoogleMap(
+        initialCameraPosition: CameraPosition(
+          target: LatLng(31.58894855147015, 74.42132446174648),
+          zoom: 15,
+        ),
+        mapType: MapType.normal,
+        markers: myMarkers,
+        onMapCreated: (GoogleMapController controller) {
+          _controller.complete(controller);
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          Position position = await _determinePosition();
+          await _saveLocationToFirestore(
+              FirebaseAuth.instance.currentUser?.email, position);
+          final GoogleMapController controller = await _controller.future;
+          controller.animateCamera(CameraUpdate.newLatLng(
+              LatLng(position.latitude, position.longitude)));
+        },
+        child: Icon(Icons.my_location, color: Colors.white),
+        backgroundColor: Colors.teal,
+        tooltip: 'Find and save your current location',
+        shape: CircleBorder(), // Explicitly defining the shape as a circle
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomAppBar(
+        shape: CircularNotchedRectangle(),
+        color: Colors.teal,
+        notchMargin: 6.0,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            IconButton(
+              icon: Icon(Icons.map, color: Colors.white),
+              onPressed: () {
+                // Code to open a map view or perform related action
               },
-              child:
-                  Text('Set Location', style: TextStyle(color: Colors.white)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    Color.fromARGB(255, 13, 106, 101), // Desired color
-              ),
             ),
-          ),
-          Positioned(
-            bottom: 20,
-            right: 20,
-            child: ElevatedButton(
+            IconButton(
+              icon: Icon(Icons.navigate_next, color: Colors.white),
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()),
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          HomeScreen()), // Navigate to HomeScreen
                 );
               },
-              child: Text('Next', style: TextStyle(color: Colors.white)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    Color.fromARGB(255, 13, 106, 101), // Desired color
-              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

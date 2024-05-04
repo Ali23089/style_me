@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:style_me/BaberProfile.dart';
 
 class ListItem {
   final String title;
@@ -95,7 +96,12 @@ class _BarberScreenState extends State<BarberScreen> {
           IconButton(
             icon: Icon(Icons.account_circle),
             onPressed: () {
-              // Navigation to profile or other screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        BarberProfileScreen()), // Navigate to HomeScreen
+              );
             },
           ),
         ],

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:style_me/Confirmation.dart'; // Adjust the import path if necessary.
+import 'package:firebase_auth/firebase_auth.dart';
 
 enum SlotStatus { available, selected, booked, lunch }
 
@@ -242,17 +243,24 @@ class _CustomBookingScreenState extends State<CustomBookingScreen> {
       isBooking = true;
     });
 
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(
+        Duration(seconds: 2)); // Mock delay to simulate async operation
 
     try {
+      // Retrieve the current user's email
+      String userEmail =
+          FirebaseAuth.instance.currentUser?.email ?? 'no-email-found';
+
       final bookingData = {
         'date': selectedDate.toIso8601String(),
         'time': selectedTime != null ? formatTimeOfDay(selectedTime!) : null,
         'serviceType': selectedServiceType.toString(),
         'serviceDetails': widget.serviceDetails,
         'salonName': widget.serviceDetails['salonName'],
+        'userEmail': userEmail, // Include the user email in the booking data
       };
 
+      // Save the booking information to Firestore
       await FirebaseFirestore.instance.collection('Bookings').add(bookingData);
 
       setState(() {
@@ -261,6 +269,7 @@ class _CustomBookingScreenState extends State<CustomBookingScreen> {
         isBooking = false;
       });
 
+      // Navigate to the confirmation screen
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) =>

@@ -6,8 +6,11 @@ import 'package:style_me/Details.dart';
 
 class SalonScreen extends StatefulWidget {
   final String salonEmail;
+  final String salonName; // Added to receive the salon name
 
-  const SalonScreen({Key? key, required this.salonEmail}) : super(key: key);
+  const SalonScreen(
+      {Key? key, required this.salonEmail, required this.salonName})
+      : super(key: key);
 
   @override
   State<SalonScreen> createState() => _SalonScreenState();
@@ -111,7 +114,8 @@ class _SalonScreenState extends State<SalonScreen>
                 });
               },
               children: [
-                Categories(salonEmail: widget.salonEmail),
+                Categories(
+                    salonEmail: widget.salonEmail, salonName: widget.salonName),
                 Details(salonEmail: widget.salonEmail),
                 //Barbers(salonEmail: widget.salonEmail), // You might want to pass the salonEmail to Barbers as well if it's needed
               ],

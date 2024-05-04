@@ -5,8 +5,11 @@ import 'package:style_me/Appointment.dart';
 
 class SalonCategoryScreen extends StatelessWidget {
   final String salonEmail;
+  final String salonName;
 
-  SalonCategoryScreen({Key? key, required this.salonEmail}) : super(key: key);
+  SalonCategoryScreen(
+      {Key? key, required this.salonEmail, required this.salonName})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +26,7 @@ class SalonCategoryScreen extends StatelessWidget {
             fit: BoxFit.cover,
           ),
           Expanded(
-            child: Categories(salonEmail: salonEmail),
+            child: Categories(salonEmail: salonEmail, salonName: salonName),
           ),
         ],
       ),
@@ -33,8 +36,10 @@ class SalonCategoryScreen extends StatelessWidget {
 
 class Categories extends StatefulWidget {
   final String salonEmail;
+  final String salonName;
 
-  Categories({Key? key, required this.salonEmail}) : super(key: key);
+  Categories({Key? key, required this.salonEmail, required this.salonName})
+      : super(key: key);
 
   @override
   _CategoriesState createState() => _CategoriesState();
@@ -112,7 +117,7 @@ class _CategoriesState extends State<Categories> {
                     MaterialPageRoute(
                       builder: (context) => CategoryDetails(
                         category: service,
-                        salonName: 'Your Salon Name',
+                        salonName: widget.salonName, // Pass salonName here
                       ),
                     ),
                   );

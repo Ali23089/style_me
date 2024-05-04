@@ -265,7 +265,10 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SalonScreen(salonEmail: salon['email']),
+                  builder: (context) => SalonScreen(
+                    salonEmail: salon['email'],
+                    salonName: 'salonName',
+                  ),
                 ),
               );
             },
@@ -530,17 +533,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       TextButton(
                         onPressed: () {
                           var salonEmail = salons[index]['email'];
-                          if (salonEmail == null) {
+                          var salonName = salons[index]['name'];
+                          print(
+                              "Email: $salonEmail, Name: $salonName"); // Debugging output // Make sure 'name' is the correct key for the salon's name
+                          if (salonEmail == null || salonName == null) {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text("Salon email is not available")));
+                                content: Text(
+                                    "Salon email or name is not available")));
                             return;
                           }
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => SalonScreen(
-                                  salonEmail:
-                                      salonEmail), // Replace with your SalonScreen class
+                                salonEmail: salonEmail,
+                                salonName:
+                                    salonName, // Passing both salonEmail and salonName
+                              ),
                             ),
                           );
                         },
@@ -551,7 +560,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: tealColor,
                           ),
                         ),
-                      ),
+                      )
                     ],
                   ),
                 ),
@@ -648,17 +657,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   TextButton(
                     onPressed: () {
                       var salonEmail = salons[index]['email'];
-                      if (salonEmail == null) {
+                      var salonName = salons[index]['name'];
+                      print(
+                          "Email: $salonEmail, Name: $salonName"); // Debugging output // Make sure 'name' is the correct key for the salon's name
+                      if (salonEmail == null || salonName == null) {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text("Salon email is not available")));
+                            content:
+                                Text("Salon email or name is not available")));
                         return;
                       }
-                      // Navigate to the salon details screen
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => SalonScreen(
                             salonEmail: salonEmail,
+                            salonName:
+                                salonName, // Passing both salonEmail and salonName
                           ),
                         ),
                       );
@@ -666,12 +680,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       'View Details',
                       style: GoogleFonts.prompt(
-                        fontSize: 18,
                         fontWeight: FontWeight.w800,
-                        color: tealColor, // Text in teal color
+                        color: tealColor,
                       ),
                     ),
-                  ),
+                  )
                 ],
               ),
             );
