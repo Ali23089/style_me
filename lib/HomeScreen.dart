@@ -10,6 +10,7 @@ import 'package:style_me/Categories.dart';
 import 'package:style_me/Feedback.dart';
 import 'package:style_me/Get_User.dart';
 import 'package:style_me/LoginBarber.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:style_me/Settings.dart';
 import 'package:style_me/SetupBussiness.dart';
 import 'package:style_me/SwithUser.dart';
@@ -21,7 +22,9 @@ import 'SalonScreen.dart'; // Make sure you have this screen created for navigat
 import 'Header.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  final Position? initialPosition;
+
+  const HomeScreen({Key? key, this.initialPosition}) : super(key: key);
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -66,7 +69,8 @@ class _HomeScreenState extends State<HomeScreen> {
   // Set default page
   TextEditingController searchController = TextEditingController();
   List<Map<String, dynamic>> searchResults = [];
-  List<Map<String, dynamic>> salons = [];
+  List<Map<String, dynamic>> nearbySalons = []; // For "Salons Nearby" section
+  List<Map<String, dynamic>> popularSalons = []; // For "Popular Salons" section
   int _selectedItem = 0;
   var _pageData = [
     HomeScreen(),
@@ -79,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     fetchSalons2();
+    fetchSalons();
     searchController.addListener(onSearchChanged);
   }
 
@@ -114,26 +119,48 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void fetchSalons2() async {
+    if (widget.initialPosition == null) {
+      print("No initial position provided");
+      return;
+    }
+
+    double lat = widget.initialPosition!.latitude;
+    double long = widget.initialPosition!.longitude;
+    double radius = 0.009; // Roughly 1km
+
     try {
-      QuerySnapshot snapshot =
-          await FirebaseFirestore.instance.collection('Salons').get();
-      List<Map<String, dynamic>> fetchedSalons = snapshot.docs.map((doc) {
+      // Firestore does not support multiple range queries on different fields without a composite index.
+      // You will need to create a composite index in Firestore for this query to work, or adjust the query to use a single range field.
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('Salons')
+          // First range filter on 'latitude'
+          .where('latitude',
+              isGreaterThan: lat - radius, isLessThan: lat + radius)
+          .get();
+
+      List<Map<String, dynamic>> fetchedSalons = [];
+
+      // Filter by longitude in memory if necessary
+      for (var doc in snapshot.docs) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        print("Fetched Salon: $data"); // Debug output
-        return {
-          'name': data['salonName'] ??
-              'No Name', // Provide default values to avoid nulls
-          'image': data['salonImageUrl'] ?? 'https://via.placeholder.com/150',
-          'rating': data['rating'] ?? 0,
-          'email': data['email'] ?? 'No Email',
-        };
-      }).toList();
+        double salonLongitude = data['longitude'];
+        if (salonLongitude >= long - radius &&
+            salonLongitude <= long + radius) {
+          fetchedSalons.add({
+            'name': data['salonName'] ?? 'No Name',
+            'image': data['salonImageUrl'] ?? 'https://via.placeholder.com/150',
+            'rating': data['rating'] ?? 0,
+            'email': data['email'] ?? 'No Email',
+          });
+          print("Fetched Salon: $data");
+        }
+      }
 
       setState(() {
-        salons = fetchedSalons;
+        nearbySalons = fetchedSalons;
       });
     } catch (e) {
-      print("Error fetching salons: $e"); // Error handling
+      print("Error fetching salons within 5km: $e");
     }
   }
 
@@ -151,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       setState(() {
-        salons = fetchedSalons;
+        popularSalons = fetchedSalons;
       });
     });
   }
@@ -473,7 +500,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: ListView.builder(
             shrinkWrap: true,
             scrollDirection: Axis.horizontal,
-            itemCount: salons.length,
+            itemCount: nearbySalons.length, // Use nearbySalons here
             itemBuilder: (context, index) {
               return Container(
                 width: 200,
@@ -491,11 +518,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: 180,
                         height: 100,
                         child: ClipRRect(
-                          //round corner border radius cliped
-                          borderRadius:
-                              BorderRadius.circular(20), // Rounded corners
+                          // Rounded corners
+                          borderRadius: BorderRadius.circular(20),
                           child: Image.network(
-                            salons[index]['image'] ?? placeholderImageUrl,
+                            nearbySalons[index]['image'] ?? placeholderImageUrl,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
                                 Image.network(
@@ -508,7 +534,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Padding(
                         padding: EdgeInsets.all(8),
                         child: Text(
-                          salons[index]['name'] ?? 'No Name',
+                          nearbySalons[index]['name'] ?? 'No Name',
                           style: GoogleFonts.prompt(
                             fontSize: 16.0,
                             fontWeight: FontWeight.bold,
@@ -521,10 +547,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: List.generate(5, (i) {
                           return Icon(
-                            i < (salons[index]['rating'] ?? 0)
+                            i < (nearbySalons[index]['rating'] ?? 0)
                                 ? Icons.star
                                 : Icons.star_border,
-                            color: i < (salons[index]['rating'] ?? 0)
+                            color: i < (nearbySalons[index]['rating'] ?? 0)
                                 ? tealColor
                                 : Colors.grey,
                           );
@@ -532,10 +558,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          var salonEmail = salons[index]['email'];
-                          var salonName = salons[index]['name'];
-                          print(
-                              "Email: $salonEmail, Name: $salonName"); // Debugging output // Make sure 'name' is the correct key for the salon's name
+                          var salonEmail = nearbySalons[index]['email'];
+                          var salonName = nearbySalons[index]['name'];
                           if (salonEmail == null || salonName == null) {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                 content: Text(
@@ -574,7 +598,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget buildPopularSalonsSection(BuildContext context) {
     Color tealColor = Colors.teal;
-
     String placeholderImageUrl = 'https://via.placeholder.com/150';
 
     return Column(
@@ -595,7 +618,7 @@ class _HomeScreenState extends State<HomeScreen> {
           shrinkWrap: true,
           physics:
               NeverScrollableScrollPhysics(), // Disables scrolling of this ListView
-          itemCount: salons.length, // The count of salons to display
+          itemCount: popularSalons.length, // Use popularSalons for item count
           itemBuilder: (context, index) {
             return Card(
               margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -609,7 +632,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(30), // Rounded corners
                     child: Image.network(
-                      salons[index]['image'] ?? placeholderImageUrl,
+                      popularSalons[index]['image'] ?? placeholderImageUrl,
                       width: double.infinity,
                       height: 150,
                       fit: BoxFit.cover,
@@ -628,7 +651,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            salons[index]['name'] ?? 'No Name',
+                            popularSalons[index]['name'] ?? 'No Name',
                             style: GoogleFonts.montserrat(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
@@ -641,10 +664,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: List.generate(5, (i) {
                             return Icon(
-                              i < (salons[index]['rating'] ?? 0)
+                              i < (popularSalons[index]['rating'] ?? 0)
                                   ? Icons.star
                                   : Icons.star_border,
-                              color: i < (salons[index]['rating'] ?? 0)
+                              color: i < (popularSalons[index]['rating'] ?? 0)
                                   ? tealColor
                                   : Colors.grey, // Teal stars for rating
                               size: 20, // Setting a fixed size for all icons
@@ -656,10 +679,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      var salonEmail = salons[index]['email'];
-                      var salonName = salons[index]['name'];
-                      print(
-                          "Email: $salonEmail, Name: $salonName"); // Debugging output // Make sure 'name' is the correct key for the salon's name
+                      var salonEmail = popularSalons[index]['email'];
+                      var salonName = popularSalons[index]['name'];
                       if (salonEmail == null || salonName == null) {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                             content:

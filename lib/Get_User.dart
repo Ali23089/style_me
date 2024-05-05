@@ -91,6 +91,15 @@ class _Get_LocationState extends State<Get_Location> {
     }
   }
 
+  void navigateToHomeScreen(Position currentPosition) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HomeScreen(initialPosition: currentPosition),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,13 +149,9 @@ class _Get_LocationState extends State<Get_Location> {
             ),
             IconButton(
               icon: Icon(Icons.navigate_next, color: Colors.white),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          HomeScreen()), // Navigate to HomeScreen
-                );
+              onPressed: () async {
+                Position currentPosition = await _determinePosition();
+                navigateToHomeScreen(currentPosition);
               },
             ),
           ],
