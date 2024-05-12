@@ -157,23 +157,41 @@ class _UserProfileState extends State<UserProfile> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(
-                    '${userData['Name'] ?? 'Unknown'}',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.teal,
-                    ),
+                  Row(
+                    children: [
+                      Icon(Icons.person, color: Colors.teal),
+                      SizedBox(width: 10),
+                      Text(
+                        '${userData['Name'] ?? 'Unknown'}',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal,
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 10),
-                  Text(
-                    '${userData['Email'] ?? 'Unknown'}',
-                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  Row(
+                    children: [
+                      Icon(Icons.email, color: Colors.teal),
+                      SizedBox(width: 10),
+                      Text(
+                        '${userData['Email'] ?? 'Unknown'}',
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 10),
-                  Text(
-                    'Phone: ${userData['PhoneNumber'] ?? 'Unknown'}',
-                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  Row(
+                    children: [
+                      Icon(Icons.phone, color: Colors.teal),
+                      SizedBox(width: 10),
+                      Text(
+                        'Phone: ${userData['PhoneNumber'] ?? 'Unknown'}',
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      ),
+                    ],
                   ),
                 ],
               ),

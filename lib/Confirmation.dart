@@ -69,23 +69,29 @@ class BookingConfirmationScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            bookingDetailRow("Salon Name:", salonName),
-            bookingDetailRow("Service Name:", serviceName),
-            bookingDetailRow("Service Price:", 'PKR $servicePrice'),
-            bookingDetailRow("Service Type:", serviceType),
-            bookingDetailRow("Date:", date),
-            bookingDetailRow("Time:", time),
+            bookingDetailRow(context, "Salon Name:", salonName, Icons.store),
+            bookingDetailRow(
+                context, "Service Name:", serviceName, Icons.design_services),
+            bookingDetailRow(context, "Service Price:", 'PKR $servicePrice',
+                Icons.attach_money),
+            bookingDetailRow(
+                context, "Service Type:", serviceType, Icons.category),
+            bookingDetailRow(context, "Date:", date, Icons.calendar_today),
+            bookingDetailRow(context, "Time:", time, Icons.access_time),
           ],
         ),
       ),
     );
   }
 
-  Widget bookingDetailRow(String label, String value) {
+  Widget bookingDetailRow(
+      BuildContext context, String label, String value, IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
+          Icon(icon, color: Colors.teal),
+          SizedBox(width: 10),
           Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
           SizedBox(width: 10),
           Expanded(child: Text(value)),

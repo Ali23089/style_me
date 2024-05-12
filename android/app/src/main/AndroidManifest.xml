@@ -18,6 +18,14 @@
         android:label="style_me"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
+   
+  <service
+    android:name="com.google.firebase.messaging.FirebaseMessagingService"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+    </intent-filter>
+</service>
 
     
 

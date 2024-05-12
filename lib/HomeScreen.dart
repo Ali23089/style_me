@@ -11,21 +11,22 @@ import 'package:style_me/Feedback.dart';
 import 'package:style_me/Get_User.dart';
 import 'package:style_me/LoginBarber.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:style_me/NavBar.dart';
 import 'package:style_me/Settings.dart';
 import 'package:style_me/SetupBussiness.dart';
 import 'package:style_me/SwithUser.dart';
 import 'package:style_me/UserProfile.dart';
+import 'package:style_me/main.dart';
 import 'package:style_me/privacyPolicy.dart';
 import 'package:style_me/test1.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'SalonScreen.dart'; // Make sure you have this screen created for navigation
+import 'SalonScreen.dart';
 import 'Header.dart';
 
 class HomeScreen extends StatefulWidget {
   final Position? initialPosition;
 
   const HomeScreen({Key? key, this.initialPosition}) : super(key: key);
-
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -70,8 +71,10 @@ class _HomeScreenState extends State<HomeScreen> {
   TextEditingController searchController = TextEditingController();
   List<Map<String, dynamic>> searchResults = [];
   List<Map<String, dynamic>> nearbySalons = []; // For "Salons Nearby" section
-  List<Map<String, dynamic>> popularSalons = []; // For "Popular Salons" section
+  List<Map<String, dynamic>> popularSalons = [];
+  // For "Popular Salons" section
   int _selectedItem = 0;
+
   var _pageData = [
     HomeScreen(),
     BookingHistory(),
@@ -208,9 +211,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       drawer:
           buildDrawer(), // You might want to control visibility based on state as well
-      bottomNavigationBar:
-          searchResults.isNotEmpty ? null : buildBottomNavBar(),
+      // bottomNavigationBar: searchResults.isNotEmpty ? null : MyApp(),
       body: buildBodyContent(),
+      bottomNavigationBar: CustomBottomNavBar(), // Add the custom nav bar here
     );
   }
 
@@ -361,7 +364,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget buildTopDealsSection() {
     Color tealColor = Colors.teal;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -712,37 +714,6 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
       ],
-    );
-  }
-
-  Widget buildBottomNavBar() {
-    return Container(
-      color: Color.fromARGB(255, 13, 106, 101),
-      child: Padding(
-        padding: EdgeInsets.all(4.0),
-        child: GNav(
-          gap: 10,
-          padding: EdgeInsets.all(16),
-          backgroundColor: Color.fromARGB(255, 13, 106, 101),
-          color: Colors.white,
-          activeColor: Color.fromARGB(255, 13, 106, 101),
-          tabBackgroundColor: Colors.white,
-          tabs: [
-            GButton(icon: Icons.home, text: "Home"),
-            GButton(icon: Icons.calendar_month, text: "Appointment"),
-            GButton(icon: Icons.location_on, text: "Location"),
-            GButton(icon: Icons.person, text: "Profile"),
-          ],
-          selectedIndex: _selectedItem,
-          onTabChange: (index) {
-            setState(() {
-              _selectedItem = index;
-            });
-            Navigator.push(
-                context, MaterialPageRoute(builder: (_) => _pageData[index]));
-          },
-        ),
-      ),
     );
   }
 

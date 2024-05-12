@@ -20,6 +20,7 @@ class BarberScreen extends StatefulWidget {
 
 class _BarberScreenState extends State<BarberScreen> {
   bool _isHomeServiceEnabled = false;
+  bool _isFABOpen = false;
   List<Map<String, dynamic>> bookings = [];
   List<Map<String, dynamic>> services = [];
 
@@ -42,16 +43,18 @@ class _BarberScreenState extends State<BarberScreen> {
         .where('barberEmail', isEqualTo: barberEmail)
         .get();
 
-    setState(() {
-      bookings = snapshot.docs
-          .map((doc) => {
-                'bookingId': doc.id,
-                'userId': doc['userId'],
-                'serviceId': doc['serviceId'],
-                'status': doc['status']
-              })
-          .toList();
-    });
+    if (mounted) {
+      setState(() {
+        bookings = snapshot.docs
+            .map((doc) => {
+                  'bookingId': doc.id,
+                  'userId': doc['userId'],
+                  'serviceId': doc['serviceId'],
+                  'status': doc['status']
+                })
+            .toList();
+      });
+    }
   }
 
   void fetchServices() async {
@@ -66,16 +69,19 @@ class _BarberScreenState extends State<BarberScreen> {
         .where('barberEmail', isEqualTo: barberEmail)
         .get();
 
-    setState(() {
-      services = snapshot.docs
-          .map((doc) => {
-                'serviceName': doc[
-                    'productName'], // Assuming field name in Firestore is 'productName'
-                'description': doc['description'],
-                'price': doc['price'].toString() // Ensuring 'price' is a string
-              })
-          .toList();
-    });
+    if (mounted) {
+      setState(() {
+        services = snapshot.docs
+            .map((doc) => {
+                  'serviceName': doc[
+                      'productName'], // Assuming field name in Firestore is 'productName'
+                  'description': doc['description'],
+                  'price':
+                      doc['price'].toString() // Ensuring 'price' is a string
+                })
+            .toList();
+      });
+    }
   }
 
   void updateBookingStatus(String bookingId, String status) async {
@@ -83,7 +89,10 @@ class _BarberScreenState extends State<BarberScreen> {
         .collection('bookings')
         .doc(bookingId)
         .update({'status': status});
-    fetchBookings();
+
+    if (mounted) {
+      fetchBookings();
+    }
   }
 
   @override
@@ -224,16 +233,54 @@ class _BarberScreenState extends State<BarberScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddServiceScreen()),
-          );
-        },
-        child: Icon(Icons.add),
-        backgroundColor: Colors.yellow,
-      ),
+      floatingActionButton: _buildFloatingActionButtons(),
+    );
+  }
+
+  Widget _buildFloatingActionButtons() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        if (_isFABOpen)
+          FloatingActionButton.extended(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AddServiceScreen()),
+              );
+            },
+            icon: Icon(Icons.add),
+            label: Text("Add Service"),
+            backgroundColor: Colors.green,
+          ),
+        if (_isFABOpen) SizedBox(height: 10),
+        if (_isFABOpen)
+          FloatingActionButton.extended(
+            heroTag: "fab1", // Unique tag
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        AddDealScreen()), // Adjust this if different screen for deals
+              );
+            },
+            icon: Icon(Icons.local_offer),
+            label: Text("Add Deal"),
+            backgroundColor: Colors.blue,
+          ),
+        if (_isFABOpen) SizedBox(height: 10),
+        FloatingActionButton(
+          heroTag: "fab2", // Unique tag
+          onPressed: () {
+            setState(() {
+              _isFABOpen = !_isFABOpen;
+            });
+          },
+          child: Icon(_isFABOpen ? Icons.close : Icons.add),
+          backgroundColor: Colors.yellow,
+        ),
+      ],
     );
   }
 }
@@ -380,7 +427,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
               TextField(
                 controller: _productNameController,
                 decoration: InputDecoration(
-                  labelText: 'Enter Product/Deal Name',
+                  labelText: 'Enter Product Name',
                 ),
               ),
               SizedBox(height: 10),
@@ -418,9 +465,149 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
               SizedBox(height: 10),
               ElevatedButton(
                 onPressed: addDeal,
-                child: Text('Add Deal'),
+                child: Text('Add offer'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.teal,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class AddDealScreen extends StatefulWidget {
+  @override
+  _AddDealScreenState createState() => _AddDealScreenState();
+}
+
+class _AddDealScreenState extends State<AddDealScreen> {
+  final TextEditingController _nameController = TextEditingController();
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
+  List<String> _selectedServices = [];
+  List<Map<String, dynamic>> _services = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchServices();
+  }
+
+  void fetchServices() async {
+    try {
+      var snapshot =
+          await FirebaseFirestore.instance.collection('services').get();
+      setState(() {
+        _services = snapshot.docs
+            .map((doc) => {'id': doc.id, 'name': doc['name']})
+            .toList();
+      });
+    } catch (e) {
+      print("Failed to fetch services: $e");
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('No image was selected.')));
+    }
+  }
+
+  Future<String> _uploadImage() async {
+    final ref = FirebaseStorage.instance
+        .ref()
+        .child('deal_images/${DateTime.now().millisecondsSinceEpoch}');
+    final uploadTask = ref.putFile(_image!);
+    final snapshot = await uploadTask.whenComplete(() {});
+    return await snapshot.ref.getDownloadURL();
+  }
+
+  void _addDeal() async {
+    if (_image == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please select an image for the deal')));
+      return;
+    }
+    try {
+      final imageUrl = await _uploadImage();
+      await FirebaseFirestore.instance.collection('deals').add({
+        'name': _nameController.text,
+        'imageUrl': imageUrl,
+        'serviceIds': _selectedServices
+      });
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error adding deal: $e')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Add Deal'),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: _image == null
+                      ? Icon(Icons.add_a_photo, size: 50)
+                      : Image.file(_image!, fit: BoxFit.cover),
+                ),
+              ),
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Deal Name'),
+              ),
+              Text('Select Services:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Wrap(
+                children: _services.map((service) {
+                  return ChoiceChip(
+                    label: Text(service['name']),
+                    selected: _selectedServices.contains(service['id']),
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedServices.add(service['id']);
+                        } else {
+                          _selectedServices.remove(service['id']);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+                spacing: 8.0,
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _addDeal,
+                child: Text('Add Deal'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
                 ),
               ),
             ],
