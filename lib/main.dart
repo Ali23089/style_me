@@ -9,6 +9,7 @@ import 'package:style_me/Categories.dart';
 import 'package:style_me/Converter.dart';
 import 'package:style_me/Details.dart';
 import 'package:style_me/Feedback.dart';
+import 'package:style_me/Firebase_Api.dart';
 import 'package:style_me/ForgetPasword.dart';
 import 'package:style_me/Get_User.dart';
 import 'package:style_me/HomeScreen.dart';
@@ -39,14 +40,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:style_me/identitty.dart';
 import 'package:style_me/reciept.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 void main() async {
-  await initializeDateFormatting(
-      "en_US"); // Replace "en_US" with your desired locale
   WidgetsFlutterBinding.ensureInitialized();
+  // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+
+  // Initialize OneSignal
+  OneSignal.initialize("dce36486-8046-42f4-92eb-e13356e45aac");
+
+  // Optionally, prompt for push notifications permission
+  OneSignal.Notifications.requestPermission(true);
+
   runApp(const MyApp());
 }
 

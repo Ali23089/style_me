@@ -1,24 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:style_me/Booking.dart';
-import 'package:style_me/Get_User.dart';
-import 'package:style_me/HomeScreen.dart';
-import 'package:style_me/UserProfile.dart';
 
-class CustomBottomNavBar extends StatefulWidget {
-  @override
-  _CustomBottomNavBarState createState() => _CustomBottomNavBarState();
-}
+class CustomBottomNavBar extends StatelessWidget {
+  final int selectedIndex;
+  final Function(int) onTabChange;
 
-class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
-  int _selectedIndex = 0;
-
-  final List<Widget> _pages = [
-    HomeScreen(),
-    BookingHistory(),
-    Get_Location(),
-    UserProfile(),
-  ];
+  CustomBottomNavBar({required this.selectedIndex, required this.onTabChange});
 
   @override
   Widget build(BuildContext context) {
@@ -40,33 +27,13 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
             tabBackgroundColor: Colors.grey[100]!,
             color: Colors.black,
             tabs: [
-              GButton(
-                icon: Icons.home,
-                text: 'Home',
-              ),
-              GButton(
-                icon: Icons.search,
-                text: 'Search',
-              ),
-              GButton(
-                icon: Icons.notifications,
-                text: 'Notifications',
-              ),
-              GButton(
-                icon: Icons.settings,
-                text: 'Settings',
-              ),
+              GButton(icon: Icons.home, text: 'Home'),
+              GButton(icon: Icons.book, text: 'Bookings'),
+              GButton(icon: Icons.location_on, text: 'Location'),
+              GButton(icon: Icons.person, text: 'Profile'),
             ],
-            selectedIndex: _selectedIndex,
-            onTabChange: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => _pages[index]),
-              );
-            },
+            selectedIndex: selectedIndex,
+            onTabChange: onTabChange,
           ),
         ),
       ),

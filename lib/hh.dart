@@ -1,4 +1,4 @@
-/*import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:style_me/Booking.dart';
@@ -34,10 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('StyleMe', style: GoogleFonts.nunitoSans()),
-        backgroundColor: Color.fromARGB(255, 13, 106, 101),
-      ),
       body: IndexedStack(
         index: _selectedIndex,
         children: _pageOptions,
@@ -45,9 +41,11 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: _selectedIndex,
         onTabChange: (index) {
-          setState(() { _selectedIndex = index; });
+          setState(() {
+            _selectedIndex = index;
+          });
         },
       ),
     );
   }
-}*/
+}
