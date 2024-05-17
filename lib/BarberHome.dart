@@ -84,6 +84,36 @@ class _BarberScreenState extends State<BarberScreen> {
     }
   }
 
+  void fetchAppointments() async {
+    final userEmail = FirebaseAuth.instance.currentUser?.email;
+    if (userEmail == null) {
+      print('No user logged in');
+      return;
+    }
+
+    var snapshot = await FirebaseFirestore.instance
+        .collection('bookings')
+        .where('userEmail', isEqualTo: userEmail)
+        .get();
+
+    if (mounted) {
+      setState(() {
+        bookings = snapshot.docs
+            .map((doc) => {
+                  'appointmentId': doc.id,
+                  'date': doc['date'], // Fetching the date
+                  'time': doc['time'], // Fetching the time
+                  'salonName': doc['salonName'], // Fetching the salon name
+                  'serviceName': doc['serviceDetails']
+                      ['serviceName'], // Accessing nested data
+                  'servicePrice': doc['serviceDetails']
+                      ['servicePrice'], // Accessing nested data
+                })
+            .toList();
+      });
+    }
+  }
+
   void updateBookingStatus(String bookingId, String status) async {
     await FirebaseFirestore.instance
         .collection('bookings')
@@ -138,7 +168,7 @@ class _BarberScreenState extends State<BarberScreen> {
             if (bookings.isEmpty)
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text("No bookings found.",
+                child: Text("No appointments scheduled.",
                     style: TextStyle(color: Colors.white)),
               ),
             if (bookings.isNotEmpty)
@@ -147,30 +177,29 @@ class _BarberScreenState extends State<BarberScreen> {
                 physics: NeverScrollableScrollPhysics(),
                 itemCount: bookings.length,
                 itemBuilder: (context, index) {
-                  var booking = bookings[index];
-                  return ListTile(
-                    title: Text(
-                      'Service ID: ${booking['serviceId']} - Status: ${booking['status']}',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    trailing: Wrap(
-                      spacing: 12,
-                      children: <Widget>[
-                        IconButton(
-                          icon: Icon(Icons.check, color: Colors.green),
-                          onPressed: () => updateBookingStatus(
-                            booking['bookingId'],
-                            'confirmed',
-                          ),
+                  final appointment = bookings[index];
+                  return Card(
+                    color: Colors.white,
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    child: ListTile(
+                      leading: Icon(Icons.event, color: Colors.black),
+                      title: Text(
+                        appointment['serviceType'] ??
+                            'Service Type Unspecified',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
                         ),
-                        IconButton(
-                          icon: Icon(Icons.close, color: Colors.red),
-                          onPressed: () => updateBookingStatus(
-                            booking['bookingId'],
-                            'declined',
-                          ),
+                      ),
+                      subtitle: Text(
+                        'Date & Time: ${appointment['dateTime'] ?? 'Date Unspecified'}',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
                         ),
-                      ],
+                      ),
                     ),
                   );
                 },

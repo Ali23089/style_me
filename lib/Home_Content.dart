@@ -2,7 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:style_me/Blog.dart';
+import 'package:style_me/Booking.dart';
+import 'package:style_me/Feedback.dart';
+import 'package:style_me/Header.dart';
 import 'package:style_me/SalonScreen.dart';
+import 'package:style_me/Settings.dart';
+import 'package:style_me/SetupBussiness.dart';
+import 'package:style_me/SwithUser.dart';
+import 'package:style_me/privacyPolicy.dart';
 
 class HomeContent extends StatefulWidget {
   final Position? initialPosition;
@@ -12,6 +20,8 @@ class HomeContent extends StatefulWidget {
   @override
   _HomeContentState createState() => _HomeContentState();
 }
+
+//DrawerSections selectedSection = DrawerSections.Dashboard;
 
 class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -166,8 +176,153 @@ class _HomeContentState extends State<HomeContent> {
         title: Text('StyleMe', style: GoogleFonts.nunitoSans()),
         backgroundColor: Color.fromARGB(255, 13, 106, 101),
       ),
+      drawer: buildDrawer(),
       body: buildBodyContent(),
     );
+  }
+
+  Widget buildDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            padding: EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 13, 106, 101),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(bottom: 1),
+                  height: 100,
+                  width: 120, // Define the width to maintain the circle shape
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                        image: AssetImage("assets/logo2.png"),
+                        fit: BoxFit.fill),
+                  ),
+                ),
+                SizedBox(
+                  height: 2,
+                ),
+                Text(
+                  "StyleMe",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontFamily: "Times New Roman", // Corrected font family name
+                  ),
+                ),
+                const Text(
+                  "styleme@gmail.com",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontFamily: "Times New Roman", // Corrected font family name
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.home),
+            title: Text('Home'),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.calendar_month),
+            title: Text('Appointment'),
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => BookingHistory()));
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.business),
+            title: Text('SettingUpBussiness'),
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => setupBussiness()));
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.policy),
+            title: Text('PrivacyPolicy'),
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => PrivacyPolicy()));
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.feedback_outlined),
+            title: Text('Feedback'),
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => FeedbackScreen()));
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.back_hand),
+            title: Text('Blog'),
+            onTap: () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => Blog()));
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.settings),
+            title: Text('Settings'),
+            onTap: () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => Setting()));
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.logout),
+            title: Text('Logout'),
+            onTap: () {
+              // Handle logout logic
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0), // Adjust padding as needed
+            child: buttonWidget(context),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget buttonWidget(BuildContext context) {
+    return SizedBox(
+        width: 200,
+        height: 50,
+        child: ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SwitchUser()),
+              );
+
+              // Handle button press
+            },
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all<Color>(
+                Color.fromARGB(255, 13, 106, 101),
+              ),
+            ),
+            child: Text(
+              "Barber Mode",
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.white,
+              ),
+            )));
   }
 
   Widget buildBodyContent() {

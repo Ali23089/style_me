@@ -107,7 +107,7 @@ class _Get_LocationState extends State<Get_Location> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text('Select Location', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.teal,
+        backgroundColor: Color.fromARGB(255, 13, 106, 101),
       ),
       body: GoogleMap(
         initialCameraPosition: CameraPosition(
@@ -130,14 +130,14 @@ class _Get_LocationState extends State<Get_Location> {
               LatLng(position.latitude, position.longitude)));
         },
         child: Icon(Icons.my_location, color: Colors.white),
-        backgroundColor: Colors.teal,
+        backgroundColor: Color.fromARGB(255, 13, 106, 101),
         tooltip: 'Find and save your current location',
         shape: CircleBorder(), // Explicitly defining the shape as a circle
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
-        color: Colors.teal,
+        color: Color.fromARGB(255, 13, 106, 101),
         notchMargin: 6.0,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,

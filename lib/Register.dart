@@ -163,45 +163,37 @@ class _RegisterPageState extends State<RegisterPage> {
                 },
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    try {
-                      // Code to handle user registration
-                    } catch (e) {
-                      // Handle errors
+              Center(
+                child: GestureDetector(
+                  onTap: () async {
+                    if (_formKey.currentState!.validate()) {
+                      try {
+                        // Code to handle user registration
+                      } catch (e) {
+                        // Handle errors
+                      }
                     }
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  shape: StadiumBorder(),
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  shadowColor: Colors.transparent,
-                  minimumSize: Size.fromHeight(60),
-                ),
-                child: Ink(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color.fromARGB(255, 6, 35, 28),
-                        Color.fromARGB(255, 4, 172, 163),
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
+                  },
                   child: Container(
-                    constraints:
-                        BoxConstraints(maxWidth: 300.0, minHeight: 50.0),
-                    alignment: Alignment.center,
-                    child: Text(
-                      "Register",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    height: 50,
+                    width: 250,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      gradient: LinearGradient(
+                        colors: [
+                          Color.fromARGB(255, 6, 35, 28),
+                          Color.fromARGB(255, 4, 172, 163),
+                        ],
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Register',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),

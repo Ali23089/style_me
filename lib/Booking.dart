@@ -16,7 +16,6 @@ class _BookingHistoryState extends State<BookingHistory> {
   @override
   void initState() {
     super.initState();
-    // Here you would fetch the bookings for the logged-in user
   }
 
   Future<List<Map<String, dynamic>>> fetchUserBookings() async {
@@ -25,26 +24,22 @@ class _BookingHistoryState extends State<BookingHistory> {
 
     if (user != null) {
       try {
-        // Query the 'Bookings' collection for documents where 'serviceDetails.serviceId' matches the current user's ID
         QuerySnapshot querySnapshot = await _db
             .collection('Bookings')
-            .where('serviceDetails.serviceId',
-                isEqualTo: user.uid) // Corrected field path
+            .where('userEmail', isEqualTo: user.email)
             .get();
 
-        // Add each booking to a list
         for (var doc in querySnapshot.docs) {
+          Map<String, dynamic> serviceDetails = doc.get('serviceDetails') ?? {};
           bookingsList.add({
-            'date': doc.get('date'), // Safe access using the get method
-            'salonName': doc.get('serviceDetails')[
-                'salonName'], // Safe access using the get method
-            'serviceName': doc.get('serviceDetails')[
-                'serviceName'], // Safe access using the get method
-            'servicePrice': doc.get('serviceDetails')[
-                'servicePrice'], // Safe access using the get method
-            'serviceType':
-                doc.get('serviceType'), // Safe access using the get method
-            'time': doc.get('time'), // Safe access using the get method
+            'date': doc.get('date'),
+            'time': doc.get('time'),
+            'salonName': doc.get('salonName'),
+            'serviceType': doc.get('serviceType'),
+            'serviceName': serviceDetails['serviceName'],
+            'servicePrice': serviceDetails['servicePrice'],
+            'additionalInfo': serviceDetails['description'] ??
+                "No additional info provided", // Assuming 'description' field exists
           });
         }
       } catch (e) {
@@ -62,6 +57,7 @@ class _BookingHistoryState extends State<BookingHistory> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Booking History'),
+        backgroundColor: Color.fromARGB(255, 13, 106, 101),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: fetchUserBookings(),
@@ -74,16 +70,63 @@ class _BookingHistoryState extends State<BookingHistory> {
             return Center(child: Text('No bookings found.'));
           }
 
-          // Create a list view of the bookings
-          return ListView.builder(
+          return ListView.separated(
             itemCount: snapshot.data!.length,
+            separatorBuilder: (context, index) => Divider(height: 1),
             itemBuilder: (context, index) {
               var booking = snapshot.data![index];
-              return ListTile(
-                title: Text(booking['salonName'] ?? 'No Salon Name'),
-                subtitle: Text(
-                    '${booking['serviceName']} at ${booking['time']} on ${booking['date']}'),
-                trailing: Text('\$${booking['servicePrice']}'),
+              return Card(
+                margin: EdgeInsets.all(10),
+                elevation: 5,
+                child: Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        booking['salonName'] ?? 'No Salon Name',
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 13, 106, 101),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        '${booking['serviceName']} (${booking['serviceType']})',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Icon(Icons.calendar_today, size: 15),
+                          SizedBox(width: 5),
+                          Text(booking['date']),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Icon(Icons.access_time, size: 15),
+                          SizedBox(width: 5),
+                          Text(booking['time']),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Icon(Icons.monetization_on, size: 15),
+                          SizedBox(width: 5),
+                          Text('\$${booking['servicePrice']}'),
+                        ],
+                      ),
+                      Text(
+                        booking['additionalInfo'],
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
               );
             },
           );

@@ -165,10 +165,11 @@ class _LoginpageState extends State<Loginpage> {
                         },
                         style: ElevatedButton.styleFrom(
                           shape: StadiumBorder(),
-                          backgroundColor: Colors.transparent,
-                          elevation: 0,
-                          shadowColor: Colors.transparent,
-                          minimumSize: Size.fromHeight(60),
+                          backgroundColor: Colors
+                              .transparent, // Ensures the button itself is transparent
+                          elevation: 0, // No elevation when not pressed
+                          foregroundColor: Colors
+                              .transparent, // Ensures button remains transparent on different states
                         ),
                         child: Ink(
                           decoration: BoxDecoration(
@@ -177,14 +178,12 @@ class _LoginpageState extends State<Loginpage> {
                                 Color.fromARGB(255, 6, 35, 28),
                                 Color.fromARGB(255, 4, 172, 163),
                               ],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
                             ),
                             borderRadius: BorderRadius.circular(30),
                           ),
                           child: Container(
                             constraints: BoxConstraints(
-                                maxWidth: 300.0, minHeight: 50.0),
+                                maxWidth: 250.0, minHeight: 50.0),
                             alignment: Alignment.center,
                             child: Text(
                               "LOGIN",
