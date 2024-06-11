@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:style_me/BarberForm.dart';
-import 'package:style_me/BarberHome.dart';
+import 'package:style_me/Barber_Home.dart';
 import 'package:style_me/Barbers.dart';
 import 'package:style_me/RegisterBarbar.dart';
 import 'package:style_me/SalonScreen.dart';
@@ -125,10 +125,11 @@ class _BarberLoginState extends State<BarberLogin> {
                           if (_formKey.currentState!.validate()) {
                             signInWithEmailAndPasswordtwo(emailController.text,
                                 passwordController.text, context);
-                            Navigator.push(
+                            /*Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => BarberScreen()));
+                                    builder: (context) => BarberScreen())
+                                    );*/
                           }
                         },
                         child: Container(

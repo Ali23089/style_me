@@ -1,44 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:style_me/Appointment.dart';
-
-class SalonCategoryScreen extends StatelessWidget {
-  final String salonEmail;
-  final String salonName;
-
-  SalonCategoryScreen(
-      {Key? key, required this.salonEmail, required this.salonName})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Salon Categories'),
-      ),
-      body: Column(
-        children: [
-          Image.network(
-            'https://img.freepik.com/premium-photo/salon-with-mirror-wall-hair-salon-chair_732812-843.jpg',
-            height: 200,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
-          Expanded(
-            child: Categories(salonEmail: salonEmail, salonName: salonName),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class Categories extends StatefulWidget {
   final String salonEmail;
   final String salonName;
+  final String locationName; // Add this
 
-  Categories({Key? key, required this.salonEmail, required this.salonName})
+  Categories(
+      {Key? key,
+      required this.salonEmail,
+      required this.salonName,
+      required this.locationName})
       : super(key: key);
 
   @override
@@ -47,11 +20,22 @@ class Categories extends StatefulWidget {
 
 class _CategoriesState extends State<Categories> {
   Future<List<dynamic>>? servicesFuture;
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+  List<dynamic> _servicesList = [];
 
   @override
   void initState() {
     super.initState();
-    servicesFuture = fetchServicesForSalon(widget.salonEmail);
+    fetchServicesForSalon(widget.salonEmail).then((services) {
+      if (mounted) {
+        setState(() {
+          _servicesList = services;
+          for (var i = 0; i < services.length; i++) {
+            _listKey.currentState?.insertItem(i);
+          }
+        });
+      }
+    });
   }
 
   Future<List<dynamic>> fetchServicesForSalon(String salonEmail) async {
@@ -79,52 +63,61 @@ class _CategoriesState extends State<Categories> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<dynamic>>(
-      future: servicesFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
-        } else if (snapshot.data!.isEmpty) {
-          return Center(child: Text("No services available."));
-        }
-
-        return ListView.builder(
-          itemCount: snapshot.data!.length,
-          itemBuilder: (context, index) {
-            var service = snapshot.data![index];
-            return Card(
-              elevation: 4.0,
-              margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-              child: ListTile(
-                leading: Image.network(
-                  service['imageUrl'] ?? 'default_image.png',
-                  width: 50.0,
-                  height: 50.0,
-                  fit: BoxFit.cover,
-                ),
-                title: Text(
-                  service['productName'] ?? 'Service',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(
-                  'Price: ${service['price'] ?? 'N/A'}\nDescription: ${service['description'] ?? 'No description available.'}',
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CategoryDetails(
-                        category: service,
-                        salonName: widget.salonName, // Pass salonName here
-                      ),
-                    ),
-                  );
-                },
+    return AnimatedList(
+      key: _listKey,
+      initialItemCount: _servicesList.length,
+      itemBuilder: (context, index, animation) {
+        var service = _servicesList[index];
+        return SizeTransition(
+          sizeFactor: animation,
+          child: Card(
+            elevation: 4.0,
+            margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            child: ListTile(
+              leading: Image.network(
+                service['imageUrl'] ?? 'default_image.png',
+                width: 50.0,
+                height: 50.0,
+                fit: BoxFit.cover,
               ),
-            );
-          },
+              title: Text(
+                service['productName'] ?? 'Service',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                'Price: ${service['price'] ?? 'N/A'}\nDescription: ${service['description'] ?? 'No description available.'}',
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        CategoryDetails(
+                      category: service,
+                      salonName: widget.salonName,
+                      salonEmail: widget.salonEmail, // Pass the email
+                      locationName:
+                          widget.locationName, // Pass locationName here
+                    ),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      var begin = Offset(1.0, 0.0);
+                      var end = Offset.zero;
+                      var curve = Curves.easeInOut;
+
+                      var tween = Tween(begin: begin, end: end)
+                          .chain(CurveTween(curve: curve));
+
+                      return SlideTransition(
+                        position: animation.drive(tween),
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
         );
       },
     );
@@ -134,8 +127,14 @@ class _CategoriesState extends State<Categories> {
 class CategoryDetails extends StatelessWidget {
   final Map<String, dynamic> category;
   final String salonName;
+  final String salonEmail;
+  final String locationName;
 
-  CategoryDetails({required this.category, required this.salonName});
+  CategoryDetails(
+      {required this.category,
+      required this.salonName,
+      required this.salonEmail,
+      required this.locationName});
 
   @override
   Widget build(BuildContext context) {
@@ -155,113 +154,115 @@ class CategoryDetails extends StatelessWidget {
         color: Colors.teal,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: ListView(
-            children: [
-              Card(
-                elevation: 5,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20.0), // Rounded corners
-                  child: Image.network(
-                    imageUrl,
-                    height: 280,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (BuildContext context, Object exception,
-                        StackTrace? stackTrace) {
-                      return Image.asset(
-                        'assets/images/default_image.png',
-                        height: 280,
-                        width: double.infinity,
-                        fit: BoxFit.cover, // Custom placeholder
+          child: AnimatedSwitcher(
+            duration: Duration(milliseconds: 500),
+            child: ListView(
+              key: ValueKey<String>(name),
+              children: [
+                Card(
+                  elevation: 5,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20.0),
+                    child: Image.network(
+                      imageUrl,
+                      height: 280,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (BuildContext context, Object exception,
+                          StackTrace? stackTrace) {
+                        return Image.asset(
+                          'assets/images/default_image.png',
+                          height: 280,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.0),
+                Card(
+                  color: Colors.white,
+                  elevation: 3,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(name,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 24,
+                                color: Colors.teal)),
+                        SizedBox(height: 16.0),
+                        Text('Description:',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                                color: Colors.teal)),
+                        Text(description,
+                            style:
+                                TextStyle(fontSize: 16, color: Colors.black)),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.0),
+                Card(
+                  color: Colors.white,
+                  elevation: 3,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Price:',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: Colors.teal)),
+                        Text('PKR $price',
+                            style:
+                                TextStyle(fontSize: 18, color: Colors.black)),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 24.0),
+                Center(
+                  child: ElevatedButton.icon(
+                    icon: Icon(Icons.calendar_today, color: Colors.teal),
+                    label: Text('Book Appointment',
+                        style: TextStyle(color: Colors.teal)),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CustomBookingScreen(
+                            serviceDetails: {
+                              'salonName': salonName,
+                              'salonEmail': salonEmail, // Pass the email
+                              'serviceName': name,
+                              'servicePrice': price,
+                              'serviceId': category['id'],
+                            },
+                            locationName:
+                                locationName, // Pass locationName here
+                          ),
+                        ),
                       );
                     },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(30, 48),
+                      foregroundColor: Colors.white,
+                      textStyle: TextStyle(fontSize: 18),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 16.0),
-              Card(
-                color: Colors.white, // Card background color
-                elevation: 3,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(name,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 24,
-                              color: Colors.teal)), // Text color
-                      SizedBox(height: 16.0),
-                      Text('Description:',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                              color: Colors.teal)), // Text color
-                      Text(description,
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black)), // Regular text color
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              Card(
-                color: Colors.white, // Card background color
-                elevation: 3,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Price:',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.teal)), // Text color
-                      Text('PKR $price',
-                          style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.black)), // Regular text color
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 24.0),
-              Center(
-                child: ElevatedButton.icon(
-                  icon: Icon(Icons.calendar_today,
-                      color: Colors.teal), // Icon color
-                  label: Text('Book Appointment',
-                      style:
-                          TextStyle(color: Colors.teal)), // Button text color
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CustomBookingScreen(
-                          serviceDetails: {
-                            'salonName': salonName,
-                            'serviceName': name,
-                            'servicePrice': price,
-                            'serviceId': category['id'],
-                          },
-                        ),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.minPositive,
-                        34), // Ensure the button is wide enough and has a height of 50 pixels
-                    foregroundColor: Colors.white, // Button background color
-                    textStyle: TextStyle(fontSize: 18),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

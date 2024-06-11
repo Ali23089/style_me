@@ -1,52 +1,114 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class BookingConfirmationScreen extends StatelessWidget {
+class BookingConfirmationScreen extends StatefulWidget {
   final Map<String, dynamic> bookingDetails;
-
   const BookingConfirmationScreen({Key? key, required this.bookingDetails})
       : super(key: key);
+  @override
+  _BookingConfirmationScreenState createState() =>
+      _BookingConfirmationScreenState();
+}
+
+class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: Offset(0, 1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.elasticOut,
+    ));
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     // Format the date and time
     final date = DateFormat("EEEE, MMMM d, yyyy")
-        .format(DateTime.parse(bookingDetails['date']));
-    final time = bookingDetails['time'];
+        .format(DateTime.parse(widget.bookingDetails['date']));
+    final time = widget.bookingDetails['time'];
 
     // Get service details
     final serviceDetails =
-        bookingDetails['serviceDetails'] as Map<String, dynamic>;
+        widget.bookingDetails['serviceDetails'] as Map<String, dynamic>;
 
     // Access service details
     final salonName = serviceDetails['salonName'];
     final serviceName = serviceDetails['serviceName'];
     final servicePrice = serviceDetails['servicePrice'];
     final serviceType =
-        bookingDetails['serviceType'].toString().split('.').last;
+        widget.bookingDetails['serviceType'].toString().split('.').last;
+
+    // Home service details
+    final homeServiceDetails =
+        widget.bookingDetails['homeServiceDetails'] as Map<String, dynamic>?;
 
     return Scaffold(
       appBar: AppBar(
         title: Text("Booking Confirmation"),
         backgroundColor: Colors.teal,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            SizedBox(height: 20),
-            Icon(Icons.check_circle_outline, size: 120, color: Colors.teal),
-            SizedBox(height: 20),
-            Text("Booking Successful!",
-                style: Theme.of(context)
-                    .textTheme
-                    .headline5
-                    ?.copyWith(color: Colors.teal)),
-            SizedBox(height: 30),
-            buildBookingDetailCard(context, salonName, serviceName,
-                servicePrice, serviceType, date, time),
-          ],
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              SizedBox(height: 20),
+              ScaleTransition(
+                scale: _scaleAnimation,
+                child: Icon(Icons.check_circle_outline,
+                    size: 120, color: Colors.teal),
+              ),
+              SizedBox(height: 20),
+              Text("Booking Successful!",
+                  style: Theme.of(context)
+                      .textTheme
+                      .headline5
+                      ?.copyWith(color: Colors.teal)),
+              SizedBox(height: 30),
+              SlideTransition(
+                position: _slideAnimation,
+                child: buildBookingDetailCard(context, salonName, serviceName,
+                    servicePrice, serviceType, date, time, homeServiceDetails),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -59,7 +121,8 @@ class BookingConfirmationScreen extends StatelessWidget {
       String servicePrice,
       String serviceType,
       String date,
-      String time) {
+      String time,
+      Map<String, dynamic>? homeServiceDetails) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -78,6 +141,16 @@ class BookingConfirmationScreen extends StatelessWidget {
                 context, "Service Type:", serviceType, Icons.category),
             bookingDetailRow(context, "Date:", date, Icons.calendar_today),
             bookingDetailRow(context, "Time:", time, Icons.access_time),
+            if (homeServiceDetails != null) ...[
+              bookingDetailRow(context, "Address:",
+                  homeServiceDetails['address'], Icons.home),
+              bookingDetailRow(context, "Contact Number:",
+                  homeServiceDetails['contactNumber'], Icons.phone),
+              bookingDetailRow(context, "Location:",
+                  homeServiceDetails['locationName'], Icons.location_on),
+              bookingDetailRow(context, "Email:",
+                  homeServiceDetails['userEmail'], Icons.email),
+            ],
           ],
         ),
       ),

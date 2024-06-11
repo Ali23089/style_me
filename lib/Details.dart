@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geocoding/geocoding.dart'; // Add this import for geocoding
 
 class Details extends StatefulWidget {
   final String salonEmail;
@@ -31,6 +32,16 @@ class _DetailsState extends State<Details> {
 
       if (salonSnapshot.docs.isNotEmpty) {
         var data = salonSnapshot.docs.first.data() as Map<String, dynamic>;
+
+        if (data.containsKey('latitude') && data.containsKey('longitude')) {
+          String address = await _getAddressFromCoordinates(
+            data['latitude'],
+            data['longitude'],
+          );
+          data['salonAddress'] =
+              address; // Replace latitude and longitude with the address
+        }
+
         return data;
       } else {
         print("No salon found for the given email.");
@@ -39,6 +50,21 @@ class _DetailsState extends State<Details> {
     } catch (e) {
       print("Error fetching salon details: $e");
       return null;
+    }
+  }
+
+  Future<String> _getAddressFromCoordinates(double lat, double lon) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lon);
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks.first;
+        return "${place.street}, ${place.subLocality}, ${place.locality}, ${place.administrativeArea}, ${place.country}";
+      } else {
+        return "Unknown Address";
+      }
+    } catch (e) {
+      print("Error in reverse geocoding: $e");
+      return "Unknown Address";
     }
   }
 

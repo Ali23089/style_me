@@ -8,7 +8,6 @@ import 'package:style_me/main.dart';
 
 class Loginpage extends StatefulWidget {
   const Loginpage({Key? key}) : super(key: key);
-
   @override
   _LoginpageState createState() => _LoginpageState();
 }

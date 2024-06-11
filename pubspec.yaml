@@ -63,6 +63,7 @@ dependencies:
   flutter_riverpod: ^2.5.1
   firebase_analytics: ^10.10.5
   onesignal_flutter: ^5.1.2
+  shimmer: ^3.0.0
 
 
   
@@ -133,6 +134,13 @@ flutter:
   - assets/HairCut1.png
   - assets/Menipedi.jpg
   - assets/succes_animation.json
+  - assets/jazzcashlogo.png
+  - assets/easypaisa.png
+  - assets/card.png
+  - assets/Home_Logo.png
+  - assets/HOME1.png
+
+
    
 
   

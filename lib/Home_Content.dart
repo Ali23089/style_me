@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:style_me/Blog.dart';
 import 'package:style_me/Booking.dart';
+import 'package:style_me/Categories.dart';
+import 'package:style_me/DEAL_CAL.dart';
 import 'package:style_me/Feedback.dart';
-import 'package:style_me/Header.dart';
+import 'package:style_me/FetchDeal.dart';
 import 'package:style_me/SalonScreen.dart';
 import 'package:style_me/Settings.dart';
 import 'package:style_me/SetupBussiness.dart';
 import 'package:style_me/SwithUser.dart';
+import 'package:style_me/firebase_functions.dart';
 import 'package:style_me/privacyPolicy.dart';
+import 'package:style_me/settings_screen.dart';
 
 class HomeContent extends StatefulWidget {
   final Position? initialPosition;
@@ -21,36 +28,27 @@ class HomeContent extends StatefulWidget {
   _HomeContentState createState() => _HomeContentState();
 }
 
-//DrawerSections selectedSection = DrawerSections.Dashboard;
-
 class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Aapko ye function call karna hai jab user koi salon select kare.
   Future<List<dynamic>> fetchServicesForSalon(String salonEmail) async {
     List<dynamic> servicesList = [];
 
-    // Pehle 'Salons' collection se salon document ko fetch karenge
     QuerySnapshot salonSnapshot = await _db
         .collection('Salons')
         .where('email', isEqualTo: salonEmail)
         .get();
 
-    // Check karenge ki koi salon mila hai ke nahi
     if (salonSnapshot.docs.isEmpty) {
       print("Koi salon nahi mila is email ke sath: $salonEmail");
       return servicesList;
     }
 
-    // Salon mil gaya, ab hum 'Services' collection se related services fetch karenge
     QuerySnapshot servicesSnapshot = await _db
         .collection('services')
-        .where('barberEmail',
-            isEqualTo:
-                salonEmail) // Yaha pe hum salon email ka use karenge jo 'Salons' collection se mila hai
+        .where('barberEmail', isEqualTo: salonEmail)
         .get();
 
-    // Services ke documents ko ek list mein convert karein
     servicesList = servicesSnapshot.docs.map((doc) => doc.data()).toList();
 
     return servicesList;
@@ -62,21 +60,64 @@ class _HomeContentState extends State<HomeContent> {
   List<Map<String, dynamic>> searchResults = [];
   List<Map<String, dynamic>> nearbySalons = [];
   List<Map<String, dynamic>> popularSalons = [];
+  String locationName = 'No location';
+  bool _isDarkMode = false; // Add this line
 
   @override
   void initState() {
     super.initState();
+    _loadThemePreference(); // Add this line
     if (widget.initialPosition != null) {
+      fetchLocationName(widget.initialPosition!);
       fetchSalons2();
     }
     fetchSalons();
     searchController.addListener(onSearchChanged);
   }
 
+  void _loadThemePreference() async {
+    // Add this method
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isDarkMode = prefs.getBool('isDarkMode') ?? false;
+    });
+  }
+
+  void _onThemeChanged(bool isDarkMode) {
+    // Add this method
+    setState(() {
+      _isDarkMode = isDarkMode;
+    });
+    (context as Element).reassemble();
+  }
+
   @override
   void dispose() {
     searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> fetchLocationName(Position position) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+      setState(() {
+        if (placemarks.isNotEmpty) {
+          Placemark place = placemarks.first;
+          locationName =
+              '${place.name}, ${place.subLocality}, ${place.thoroughfare}';
+        } else {
+          locationName = 'Unknown location';
+        }
+      });
+    } catch (e) {
+      print('Error fetching location name: $e');
+      setState(() {
+        locationName = 'Error fetching location';
+      });
+    }
   }
 
   void onSearchChanged() {
@@ -115,18 +156,14 @@ class _HomeContentState extends State<HomeContent> {
     double radius = 0.009; // Roughly 1km
 
     try {
-      // Firestore does not support multiple range queries on different fields without a composite index.
-      // You will need to create a composite index in Firestore for this query to work, or adjust the query to use a single range field.
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('Salons')
-          // First range filter on 'latitude'
           .where('latitude',
               isGreaterThan: lat - radius, isLessThan: lat + radius)
           .get();
 
       List<Map<String, dynamic>> fetchedSalons = [];
 
-      // Filter by longitude in memory if necessary
       for (var doc in snapshot.docs) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         double salonLongitude = data['longitude'];
@@ -172,12 +209,105 @@ class _HomeContentState extends State<HomeContent> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('StyleMe', style: GoogleFonts.nunitoSans()),
-        backgroundColor: Color.fromARGB(255, 13, 106, 101),
-      ),
       drawer: buildDrawer(),
-      body: buildBodyContent(),
+      body: Column(
+        children: [
+          buildHeader(),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: Duration(milliseconds: 500),
+              child: searchResults.isNotEmpty
+                  ? buildSearchResults()
+                  : buildBodyContent(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildHeader() {
+    return Container(
+      height: 240,
+      decoration: BoxDecoration(
+        color: Color.fromARGB(255, 13, 106, 101),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(40),
+          bottomRight: Radius.circular(40),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            spreadRadius: 5,
+            blurRadius: 7,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          SizedBox(height: 40),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Builder(
+                  builder: (context) => IconButton(
+                    icon: Icon(Icons.menu, color: Colors.white),
+                    onPressed: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                  ),
+                ),
+                Text(
+                  "StyleMe",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Icon(Icons.location_pin, color: Colors.white),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Your Location",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      locationName,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Icon(Icons.my_location, color: Colors.white),
+              ],
+            ),
+          ),
+          SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: buildSearchBar(),
+          ),
+        ],
+      ),
     );
   }
 
@@ -279,14 +409,21 @@ class _HomeContentState extends State<HomeContent> {
             title: Text('Settings'),
             onTap: () {
               Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => Setting()));
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SettingsScreen(
+                    isDarkMode: _isDarkMode,
+                    onThemeChanged: _onThemeChanged,
+                  ),
+                ),
+              );
             },
           ),
           ListTile(
             leading: Icon(Icons.logout),
             title: Text('Logout'),
             onTap: () {
-              // Handle logout logic
+              signOut(context);
             },
           ),
           Padding(
@@ -308,8 +445,6 @@ class _HomeContentState extends State<HomeContent> {
                 context,
                 MaterialPageRoute(builder: (context) => SwitchUser()),
               );
-
-              // Handle button press
             },
             style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all<Color>(
@@ -329,7 +464,6 @@ class _HomeContentState extends State<HomeContent> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          buildSearchBar(),
           searchResults.isNotEmpty
               ? buildSearchResults()
               : buildRegularContent(),
@@ -349,7 +483,9 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   Widget buildSalonCard(Map<String, dynamic> salon) {
-    return Container(
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
       width: 200,
       margin: EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -389,11 +525,27 @@ class _HomeContentState extends State<HomeContent> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => SalonScreen(
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      Categories(
                     salonEmail: salon['email'],
-                    salonName: 'salonName',
+                    salonName: salon['salonName'],
+                    locationName: locationName, // Pass locationName here
                   ),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    var begin = Offset(1.0, 0.0);
+                    var end = Offset.zero;
+                    var curve = Curves.easeInOut;
+
+                    var tween = Tween(begin: begin, end: end)
+                        .chain(CurveTween(curve: curve));
+
+                    return SlideTransition(
+                      position: animation.drive(tween),
+                      child: child,
+                    );
+                  },
                 ),
               );
             },
@@ -412,13 +564,18 @@ class _HomeContentState extends State<HomeContent> {
 
   Widget buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: TextFormField(
         controller: searchController,
         decoration: InputDecoration(
           prefixIcon: Icon(Icons.search),
           hintText: 'Search Salon',
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(50.0)),
+          fillColor: Colors.white,
+          filled: true,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(50.0),
+            borderSide: BorderSide.none,
+          ),
         ),
       ),
     );
@@ -436,11 +593,19 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   Future<List<Map<String, dynamic>>> fetchTopDeals() async {
-    QuerySnapshot dealsSnapshot =
-        await FirebaseFirestore.instance.collection('deals').get();
-    return dealsSnapshot.docs
-        .map((doc) => doc.data() as Map<String, dynamic>)
-        .toList();
+    try {
+      QuerySnapshot<Map<String, dynamic>> dealsSnapshot =
+          await FirebaseFirestore.instance.collection('SalonsDeals').get();
+
+      return dealsSnapshot.docs.map((doc) {
+        var data = doc.data();
+        data['id'] = doc.id; // Add the document ID to the data
+        return data;
+      }).toList();
+    } catch (e) {
+      print('Error fetching top deals: $e');
+      return [];
+    }
   }
 
   Future<String> getSalonNameByEmail(String salonEmail) async {
@@ -478,38 +643,46 @@ class _HomeContentState extends State<HomeContent> {
           builder: (BuildContext context,
               AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
+              return Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
-              return Text('Error: ${snapshot.error}');
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text('Error: ${snapshot.error}'),
+              );
             } else if (snapshot.hasData) {
               List<Map<String, dynamic>> deals = snapshot.data!;
               return Container(
-                height: 270,
+                height: 330,
                 child: ListView.builder(
                   shrinkWrap: true,
                   scrollDirection: Axis.horizontal,
                   itemCount: deals.length,
                   itemBuilder: (context, index) {
+                    String barberEmail = deals[index]['barberEmail'] ?? '';
+                    String dealTitle = deals[index]['title'] ?? '';
                     return FutureBuilder(
-                      future: getSalonNameByEmail(deals[index]['salonEmail']),
+                      future: getSalonNameByEmail(barberEmail),
                       builder: (BuildContext context,
                           AsyncSnapshot<String> salonSnapshot) {
                         if (salonSnapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return CircularProgressIndicator(); // Show a loader until the salon name is fetched
+                          return Center(child: CircularProgressIndicator());
                         }
 
                         String salonName =
                             salonSnapshot.data ?? 'Salon not found';
-                        return buildDealCard(
-                            deals[index], salonName, tealColor);
+                        return buildDealCard(deals[index], salonName, tealColor,
+                            context, barberEmail, dealTitle);
                       },
                     );
                   },
                 ),
               );
             } else {
-              return Text('No deals available at the moment.');
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text('No deals available at the moment.'),
+              );
             }
           },
         ),
@@ -518,56 +691,106 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   Widget buildDealCard(
-      Map<String, dynamic> deal, String salonName, Color tealColor) {
-    return Container(
-      width: 200,
-      padding: EdgeInsets.all(10),
-      margin: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle, // Make the card circular
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ClipOval(
-            child: Image.network(
-              deal['imageUrl'] ?? 'https://via.placeholder.com/150',
-              width: 150, // Diameter of the circle
-              height: 150, // Diameter of the circle
-              fit: BoxFit.cover,
+      Map<String, dynamic> deal,
+      String salonName,
+      Color tealColor,
+      BuildContext context,
+      String barberEmail,
+      String dealTitle) {
+    String formattedDate = 'Unknown Date';
+
+    if (deal['endDate'] != null) {
+      try {
+        formattedDate =
+            DateFormat('yyyy-MM-dd').format(deal['endDate'].toDate());
+      } catch (e) {
+        formattedDate = 'Invalid Date';
+      }
+    }
+    return ClipOval(
+      child: Container(
+        width: 220,
+        height: 220, // Ensure the container is square
+        padding: EdgeInsets.all(10),
+        margin: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: Offset(0, 3),
             ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            deal['dealName'] ?? 'No Name',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: tealColor,
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipOval(
+              child: Image.network(
+                deal['imageUrl'] ?? 'https://via.placeholder.com/150',
+                width: 150,
+                height: 150,
+                fit: BoxFit.cover,
+              ),
             ),
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(
-            'Discount: ${deal['discount']}%',
-            style: TextStyle(
-              color: tealColor,
+            SizedBox(height: 1),
+            Center(
+              child: Text(
+                deal['title'] ?? 'No Title',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: tealColor,
+                ),
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
             ),
-          ),
-          Text(
-            salonName,
-            style: TextStyle(
-              color: tealColor,
+            SizedBox(height: 1),
+            Center(
+              child: Text(
+                'Valid: $formattedDate',
+                style: TextStyle(
+                  color: tealColor,
+                ),
+              ),
             ),
-          ),
-        ],
+            SizedBox(height: 1),
+            Center(
+              child: Text(
+                salonName,
+                style: TextStyle(
+                  color: tealColor,
+                ),
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+              ),
+            ),
+            SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CustomBookingScreen1(
+                      serviceDetails: deal,
+                      locationName: salonName,
+                      validFrom: deal['startDate'].toDate(),
+                      validTo: deal['endDate'].toDate(),
+                    ),
+                  ),
+                );
+              },
+              child: Text('Book Now'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: tealColor,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -575,7 +798,6 @@ class _HomeContentState extends State<HomeContent> {
   Widget buildSalonsNearbySection() {
     Color tealColor = Colors.teal;
 
-    // Placeholder image URL - replace with an appropriate one for your app
     String placeholderImageUrl = 'https://via.placeholder.com/50';
 
     return Column(
@@ -593,7 +815,7 @@ class _HomeContentState extends State<HomeContent> {
           ),
         ),
         Container(
-          height: 250,
+          height: 255,
           child: ListView.builder(
             shrinkWrap: true,
             scrollDirection: Axis.horizontal,
@@ -615,7 +837,6 @@ class _HomeContentState extends State<HomeContent> {
                         width: 180,
                         height: 100,
                         child: ClipRRect(
-                          // Rounded corners
                           borderRadius: BorderRadius.circular(20),
                           child: Image.network(
                             nearbySalons[index]['image'] ?? placeholderImageUrl,
@@ -665,12 +886,30 @@ class _HomeContentState extends State<HomeContent> {
                           }
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => SalonScreen(
+                            PageRouteBuilder(
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      SalonScreen(
                                 salonEmail: salonEmail,
-                                salonName:
-                                    salonName, // Passing both salonEmail and salonName
+                                salonName: salonName,
+                                locationName: locationName,
+                                // Passing both salonEmail and salonName
+                                // Pass locationName here
                               ),
+                              transitionsBuilder: (context, animation,
+                                  secondaryAnimation, child) {
+                                var begin = Offset(1.0, 0.0);
+                                var end = Offset.zero;
+                                var curve = Curves.easeInOut;
+
+                                var tween = Tween(begin: begin, end: end)
+                                    .chain(CurveTween(curve: curve));
+
+                                return SlideTransition(
+                                  position: animation.drive(tween),
+                                  child: child,
+                                );
+                              },
                             ),
                           );
                         },
@@ -786,12 +1025,29 @@ class _HomeContentState extends State<HomeContent> {
                       }
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => SalonScreen(
+                        PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  SalonScreen(
                             salonEmail: salonEmail,
-                            salonName:
-                                salonName, // Passing both salonEmail and salonName
+                            salonName: salonName,
+                            locationName:
+                                locationName, // Passing both salonEmail and salonName
                           ),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            var begin = Offset(1.0, 0.0);
+                            var end = Offset.zero;
+                            var curve = Curves.easeInOut;
+
+                            var tween = Tween(begin: begin, end: end)
+                                .chain(CurveTween(curve: curve));
+
+                            return SlideTransition(
+                              position: animation.drive(tween),
+                              child: child,
+                            );
+                          },
                         ),
                       );
                     },

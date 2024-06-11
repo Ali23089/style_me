@@ -1,11 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:style_me/BarberHome.dart';
+import 'package:style_me/Barber_Home.dart';
 import 'package:style_me/Get_User.dart';
 import 'package:style_me/Login.dart';
 import 'package:style_me/HomeScreen.dart';
 import 'package:style_me/SalonScreen.dart';
+import 'package:style_me/hh.dart';
 import 'package:style_me/main.dart';
 
 class SessionController {
@@ -197,5 +198,34 @@ Future<void> signInWithEmailAndPasswordtwo(
         ),
       );
     }
+  }
+}
+
+Future<void> signOut(BuildContext context) async {
+  try {
+    await FirebaseAuth.instance.signOut();
+
+    // Navigate to the login screen after signing out
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => Loginpage()),
+    );
+
+    // Show success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Successfully Signed Out"),
+        backgroundColor: Colors.green,
+      ),
+    );
+  } catch (e) {
+    // Handle sign out exceptions
+    print(e);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("An error occurred while signing out."),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 }

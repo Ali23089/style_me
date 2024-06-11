@@ -7,10 +7,14 @@ import 'package:style_me/Details.dart';
 class SalonScreen extends StatefulWidget {
   final String salonEmail;
   final String salonName; // Added to receive the salon name
+  final String locationName; // Add this parameter
 
-  const SalonScreen(
-      {Key? key, required this.salonEmail, required this.salonName})
-      : super(key: key);
+  const SalonScreen({
+    Key? key,
+    required this.salonEmail,
+    required this.salonName,
+    required this.locationName,
+  }) : super(key: key);
 
   @override
   State<SalonScreen> createState() => _SalonScreenState();
@@ -43,14 +47,12 @@ class _SalonScreenState extends State<SalonScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Dynamically calculate the button width based on the number of items
     double buttonWidth = MediaQuery.of(context).size.width / screenNames.length;
 
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 13, 106, 101),
       appBar: AppBar(
         title: Text('Salon Screen'),
-        //backgroundColor: Colors.teal,
       ),
       body: Column(
         children: [
@@ -75,7 +77,7 @@ class _SalonScreenState extends State<SalonScreen>
                   },
                   child: Container(
                     margin: const EdgeInsets.all(5),
-                    width: buttonWidth, // Dynamically set width
+                    width: buttonWidth,
                     height: 45,
                     decoration: BoxDecoration(
                       color: current == index ? Colors.white70 : Colors.white54,
@@ -115,9 +117,17 @@ class _SalonScreenState extends State<SalonScreen>
               },
               children: [
                 Categories(
-                    salonEmail: widget.salonEmail, salonName: widget.salonName),
-                Details(salonEmail: widget.salonEmail),
-                //Barbers(salonEmail: widget.salonEmail), // You might want to pass the salonEmail to Barbers as well if it's needed
+                  salonEmail: widget.salonEmail,
+                  salonName: widget.salonName,
+                  locationName: widget.locationName, // Pass locationName here
+                ),
+                Details(
+                  salonEmail: widget.salonEmail,
+                ),
+                // Barbers(
+                //   salonEmail: widget.salonEmail,
+                //   locationName: widget.locationName, // Pass locationName here if needed
+                // ),
               ],
             ),
           ),
