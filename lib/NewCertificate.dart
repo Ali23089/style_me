@@ -31,29 +31,23 @@ class _CertificateState extends State<Certificate> {
     if (_certificateImage == null) return;
 
     try {
-      // Get the currently logged-in user's email
       String? email = FirebaseAuth.instance.currentUser!.email;
 
-      // Create a reference to the location you want to upload to in Firebase Storage
       String fileName =
           'certificate_${DateTime.now().millisecondsSinceEpoch}.jpg';
       Reference storageReference =
           FirebaseStorage.instance.ref().child('Salon Certificates/$fileName');
 
-      // Upload the file to Firebase Storage
       await storageReference.putFile(_certificateImage!);
 
-      // Get the download URL of the uploaded file
       String downloadURL = await storageReference.getDownloadURL();
 
-      // Update the certificate image URL in Firestore
       await FirebaseFirestore.instance
           .collection('Salons')
           .doc(email)
           .update({'certificateImageUrl': downloadURL});
     } catch (e) {
       print('Error uploading image to Firebase Storage: $e');
-      // Handle error uploading image
     }
   }
 
@@ -110,10 +104,8 @@ class _CertificateState extends State<Certificate> {
                   Center(
                     child: ElevatedButton(
                       onPressed: () {
-                        // Call the function to upload the image to Firebase
                         _uploadImageToFirebase();
 
-                        // Navigate to the next screen
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => CNIC()),

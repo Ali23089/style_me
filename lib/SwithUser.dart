@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:style_me/Admin_Dashboard.dart';
 import 'package:style_me/Login.dart';
 import 'package:style_me/LoginBarber.dart';
 
@@ -174,20 +175,32 @@ class _SwitchUserState extends State<SwitchUser>
                   ),
                 ),
                 SizedBox(height: mediaSize.height * 0.1),
-                Text(
-                  "Login with Social media",
-                  style: TextStyle(
-                    fontSize: mediaSize.width * 0.05,
-                    fontFamily: "Times New Roman",
-                    color: Colors.white,
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    AdminDashboard()));
+                  },
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.admin_panel_settings,
+                        size: mediaSize.width * 0.1,
+                        color: Colors.white,
+                      ),
+                      Text(
+                        "Admin",
+                        style: TextStyle(
+                          fontSize: mediaSize.width * 0.05,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: mediaSize.height * 0.01),
-                Image(
-                  image: AssetImage("assets/social.png"),
-                  height: mediaSize.height * 0.1,
-                ),
-                SizedBox(height: mediaSize.height * 0.02),
               ],
             ),
           ),

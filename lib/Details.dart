@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:geocoding/geocoding.dart'; // Add this import for geocoding
+import 'package:geocoding/geocoding.dart';
 
 class Details extends StatefulWidget {
   final String salonEmail;
@@ -38,8 +38,7 @@ class _DetailsState extends State<Details> {
             data['latitude'],
             data['longitude'],
           );
-          data['salonAddress'] =
-              address; // Replace latitude and longitude with the address
+          data['salonAddress'] = address;
         }
 
         return data;
@@ -91,8 +90,7 @@ class _DetailsState extends State<Details> {
                 expandedHeight: 250.0,
                 floating: false,
                 pinned: true,
-                automaticallyImplyLeading:
-                    false, // This will hide the back arrow
+                automaticallyImplyLeading: false,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Image.network(
                     salonData['salonImageUrl'] ?? 'default_image.png',
@@ -108,9 +106,8 @@ class _DetailsState extends State<Details> {
                       salonData['salonName'] ?? 'Salon Name',
                       style: Theme.of(context).textTheme.headline5?.copyWith(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold, // Makes text bold
-                          fontSize: 24 // Increases the font size
-                          ),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -165,9 +162,7 @@ class _DetailsState extends State<Details> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Implement your FAB action here, like opening a phone dialer or booking form
-        },
+        onPressed: () {},
         child: Icon(Icons.phone),
         backgroundColor: Colors.white,
       ),

@@ -3,6 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:style_me/Admin_Dashboard.dart';
+import 'package:style_me/Splash.dart';
 import 'package:style_me/SwithUser.dart';
 import 'package:style_me/firebase_options.dart';
 
@@ -61,7 +63,7 @@ class _MyAppState extends State<MyApp> {
         brightness: Brightness.dark,
       ),
       themeMode: _themeMode,
-      home: SwitchUser(),
+      home: SplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

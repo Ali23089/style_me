@@ -67,8 +67,7 @@ class _BarberDetailsState extends State<BarberDetails> {
               salonDetails['latitude'],
               salonDetails['longitude'],
             );
-            salonDetails['salonAddress'] =
-                address; // Replace latitude and longitude with the address
+            salonDetails['salonAddress'] = address;
           }
 
           setState(() {
@@ -300,7 +299,7 @@ class _BarberDetailsState extends State<BarberDetails> {
                 salonData: salonData!,
               ),
             ),
-          ).then((_) => fetchDetails()); // Fetch details again after editing
+          ).then((_) => fetchDetails());
         },
         child: Icon(
           Icons.edit,

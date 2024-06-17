@@ -63,7 +63,6 @@ class _CNICState extends State<CNIC> {
       }
     } catch (e) {
       print('Error uploading images to Firebase Storage: $e');
-      // Handle error uploading images
     }
   }
 

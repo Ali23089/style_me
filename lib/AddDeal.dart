@@ -83,7 +83,7 @@ class _AddDealScreenState extends State<AddDealScreen> {
         'endDate': _endDate,
         'imageUrl': imageUrl,
         'serviceIds': [],
-        'barberEmail': widget.barberEmail, // Include barber's email
+        'barberEmail': widget.barberEmail,
       });
       Navigator.pop(context);
     } catch (e) {
@@ -126,6 +126,7 @@ class _AddDealScreenState extends State<AddDealScreen> {
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Color.fromARGB(255, 13, 106, 101),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -225,8 +226,7 @@ class _AddDealScreenState extends State<AddDealScreen> {
                       : null,
                   child: Text('Add Point'),
                   style: TextButton.styleFrom(
-                    foregroundColor:
-                        Color.fromARGB(255, 13, 106, 101), // RGB color
+                    foregroundColor: Color.fromARGB(255, 13, 106, 101),
                   ),
                 ),
                 SizedBox(height: 8),
@@ -267,74 +267,6 @@ class _AddDealScreenState extends State<AddDealScreen> {
                     }
                     return null;
                   },
-                ),
-                ListTile(
-                  title: Text('Start Date'),
-                  subtitle: Text(_startDate == null
-                      ? 'No date chosen'
-                      : _startDate!.toLocal().toString().split(' ')[0]),
-                  trailing: IconButton(
-                    icon: Icon(Icons.calendar_today,
-                        color: Color.fromARGB(255, 13, 106, 101)),
-                    onPressed: () async {
-                      DateTime? picked = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime(2100),
-                        builder: (context, child) {
-                          return Theme(
-                            data: ThemeData.light().copyWith(
-                              colorScheme: ColorScheme.light(
-                                primary: Color.fromARGB(255, 13, 106, 101),
-                                onPrimary: Colors.white,
-                                surface: Colors.white,
-                                onSurface: Colors.black,
-                              ),
-                              dialogBackgroundColor: Colors.white,
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-                      if (picked != null && picked != _startDate)
-                        setState(() => _startDate = picked);
-                    },
-                  ),
-                ),
-                ListTile(
-                  title: Text('End Date'),
-                  subtitle: Text(_endDate == null
-                      ? 'No date chosen'
-                      : _endDate!.toLocal().toString().split(' ')[0]),
-                  trailing: IconButton(
-                    icon: Icon(Icons.calendar_today,
-                        color: Color.fromARGB(255, 13, 106, 101)),
-                    onPressed: () async {
-                      DateTime? picked = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime(2100),
-                        builder: (context, child) {
-                          return Theme(
-                            data: ThemeData.light().copyWith(
-                              colorScheme: ColorScheme.light(
-                                primary: Color.fromARGB(255, 13, 106, 101),
-                                onPrimary: Colors.white,
-                                surface: Colors.white,
-                                onSurface: Colors.black,
-                              ),
-                              dialogBackgroundColor: Colors.white,
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-                      if (picked != null && picked != _endDate)
-                        setState(() => _endDate = picked);
-                    },
-                  ),
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(

@@ -8,7 +8,7 @@ import 'package:style_me/Blog.dart';
 import 'package:style_me/Edit_Services.dart';
 import 'package:style_me/Feedback.dart';
 import 'package:style_me/Login.dart';
-import 'package:style_me/SwithUser.dart';
+import 'package:style_me/edit_deals.dart';
 import 'package:style_me/firebase_functions.dart';
 
 class BarberScreen extends StatefulWidget {
@@ -93,7 +93,7 @@ class _BarberScreenState extends State<BarberScreen> {
       setState(() {
         services = snapshot.docs
             .map((doc) => {
-                  'serviceId': doc.id, // Add service ID for editing
+                  'serviceId': doc.id,
                   'productName': doc.data().containsKey('productName')
                       ? doc['productName']
                       : null,
@@ -223,7 +223,7 @@ class _BarberScreenState extends State<BarberScreen> {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
-                    fontFamily: "Times New Roman", // Corrected font family name
+                    fontFamily: "Times New Roman",
                   ),
                 ),
                 const Text(
@@ -231,7 +231,7 @@ class _BarberScreenState extends State<BarberScreen> {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
-                    fontFamily: "Times New Roman", // Corrected font family name
+                    fontFamily: "Times New Roman",
                   ),
                 ),
               ],
@@ -357,6 +357,7 @@ class _BarberScreenState extends State<BarberScreen> {
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Color.fromARGB(255, 13, 106, 101),
+        iconTheme: IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: Icon(
@@ -367,9 +368,7 @@ class _BarberScreenState extends State<BarberScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        BarberDetails()), // Navigate to HomeScreen
+                MaterialPageRoute(builder: (context) => BarberDetails()),
               );
             },
           ),
@@ -681,8 +680,7 @@ class _BarberScreenState extends State<BarberScreen> {
                           MaterialPageRoute(
                             builder: (context) => EditServiceScreen(
                               service: service,
-                              serviceId:
-                                  service['serviceId'], // Pass the service ID
+                              serviceId: service['serviceId'],
                             ),
                           ),
                         );
@@ -751,8 +749,28 @@ class _BarberScreenState extends State<BarberScreen> {
                     ),
                     trailing: IconButton(
                       icon: Icon(Icons.edit, color: Colors.white),
-                      onPressed: () {
-                        // Add your code for editing the deal
+                      onPressed: () async {
+                        if (deal['title'] != null) {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditDealScreen(
+                                deal: deal,
+                                dealId: deal['title'],
+                              ),
+                            ),
+                          );
+                          if (result == true) {
+                            // If the deal was updated, refresh the deals list
+                            fetchDeals(barberData!['email']);
+                          }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                    'Deal ID is missing. Cannot edit this deal.')),
+                          );
+                        }
                       },
                     ),
                   ),
@@ -785,7 +803,7 @@ class _BarberScreenState extends State<BarberScreen> {
               "Add Service",
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Color.fromARGB(255, 13, 106, 101),
+            backgroundColor: Colors.red,
           ),
         if (_isFABOpen) SizedBox(height: 10),
         if (_isFABOpen)
@@ -796,8 +814,7 @@ class _BarberScreenState extends State<BarberScreen> {
                 context,
                 MaterialPageRoute(
                     builder: (context) => AddDealScreen(
-                        barberEmail: FirebaseAuth.instance.currentUser
-                            ?.email)), // Adjust this if different screen for deals
+                        barberEmail: FirebaseAuth.instance.currentUser?.email)),
               );
             },
             icon: Icon(
@@ -808,7 +825,7 @@ class _BarberScreenState extends State<BarberScreen> {
               "Add Deal",
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Color.fromARGB(255, 13, 106, 101),
+            backgroundColor: Colors.green,
           ),
         if (_isFABOpen) SizedBox(height: 10),
         FloatingActionButton(

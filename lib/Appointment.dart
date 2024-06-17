@@ -77,8 +77,12 @@ class _CustomBookingScreenState extends State<CustomBookingScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Booking Calendar'),
-        backgroundColor: Colors.teal,
+        title: Text(
+          'Booking Calendar',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Color.fromARGB(255, 13, 106, 101),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: FadeTransition(
         opacity: _animation,
@@ -113,7 +117,7 @@ class _CustomBookingScreenState extends State<CustomBookingScreen>
     return Container(
       height: 100,
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.teal),
+        // border: Border.all(color: Color.fromARGB(255, 13, 106, 101)),
         borderRadius: BorderRadius.circular(10),
       ),
       child: ListView.builder(
@@ -135,10 +139,12 @@ class _CustomBookingScreenState extends State<CustomBookingScreen>
               curve: Curves.easeInOut,
               width: 60,
               decoration: BoxDecoration(
-                color: isSelected ? Colors.teal : Colors.transparent,
+                color: isSelected
+                    ? Color.fromARGB(255, 13, 106, 101)
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: Colors.teal,
+                  color: Color.fromARGB(255, 13, 106, 101),
                 ),
               ),
               alignment: Alignment.center,
@@ -217,7 +223,7 @@ class _CustomBookingScreenState extends State<CustomBookingScreen>
             decoration: BoxDecoration(
               color: getColorForStatus(slot.status),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.teal),
+              border: Border.all(color: Color.fromARGB(255, 13, 106, 101)),
             ),
             alignment: Alignment.center,
             child: Text(
@@ -261,7 +267,7 @@ class _CustomBookingScreenState extends State<CustomBookingScreen>
                     });
                   },
                   backgroundColor: Colors.grey[200],
-                  selectedColor: Colors.teal,
+                  selectedColor: Color.fromARGB(255, 13, 106, 101),
                   labelStyle: TextStyle(
                     color: selectedServiceType == type
                         ? Colors.white
@@ -276,7 +282,7 @@ class _CustomBookingScreenState extends State<CustomBookingScreen>
   Widget buildBookingButton() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.teal,
+        backgroundColor: Color.fromARGB(255, 13, 106, 101),
         padding: EdgeInsets.symmetric(horizontal: 100, vertical: 20),
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.0)),
@@ -325,7 +331,7 @@ class _CustomBookingScreenState extends State<CustomBookingScreen>
               opacity: animation,
               child: HomeServiceFormScreen(
                   bookingDetails: bookingData,
-                  locationName: widget.locationName), // Pass locationName here
+                  locationName: widget.locationName),
             ),
           ),
         );

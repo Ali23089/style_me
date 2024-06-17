@@ -32,14 +32,14 @@ class _BookingHistoryState extends State<BookingHistory> {
         for (var doc in querySnapshot.docs) {
           Map<String, dynamic> serviceDetails = doc.get('serviceDetails') ?? {};
           bookingsList.add({
-            'date': doc.get('date'),
-            'time': doc.get('time'),
-            'salonName': doc.get('salonName'),
-            'serviceType': doc.get('serviceType'),
-            'serviceName': serviceDetails['serviceName'],
-            'servicePrice': serviceDetails['servicePrice'],
-            'additionalInfo': serviceDetails['description'] ??
-                "No additional info provided", // Assuming 'description' field exists
+            'date': doc.get('date') ?? 'No date',
+            'time': doc.get('time') ?? 'No time',
+            'salonName': doc.get('salonName') ?? 'No Salon Name',
+            'serviceType': doc.get('serviceType') ?? 'No Service Type',
+            'serviceName': serviceDetails['serviceName'] ?? 'No Service Name',
+            'servicePrice': serviceDetails['servicePrice'] ?? '0',
+            'additionalInfo':
+                serviceDetails['description'] ?? 'No additional info provided',
           });
         }
       } catch (e) {
@@ -56,8 +56,12 @@ class _BookingHistoryState extends State<BookingHistory> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Booking History'),
+        title: Text(
+          'Booking History',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Color.fromARGB(255, 13, 106, 101),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: fetchUserBookings(),
@@ -66,7 +70,7 @@ class _BookingHistoryState extends State<BookingHistory> {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (snapshot.data!.isEmpty) {
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(child: Text('No bookings found.'));
           }
 
@@ -84,7 +88,7 @@ class _BookingHistoryState extends State<BookingHistory> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        booking['salonName'] ?? 'No Salon Name',
+                        booking['salonName'],
                         style: TextStyle(
                           color: Color.fromARGB(255, 13, 106, 101),
                           fontWeight: FontWeight.bold,
@@ -99,6 +103,7 @@ class _BookingHistoryState extends State<BookingHistory> {
                           fontSize: 16,
                         ),
                       ),
+                      SizedBox(height: 5),
                       Row(
                         children: [
                           Icon(Icons.calendar_today, size: 15),
@@ -106,6 +111,7 @@ class _BookingHistoryState extends State<BookingHistory> {
                           Text(booking['date']),
                         ],
                       ),
+                      SizedBox(height: 5),
                       Row(
                         children: [
                           Icon(Icons.access_time, size: 15),
@@ -113,6 +119,7 @@ class _BookingHistoryState extends State<BookingHistory> {
                           Text(booking['time']),
                         ],
                       ),
+                      SizedBox(height: 5),
                       Row(
                         children: [
                           Icon(Icons.monetization_on, size: 15),
@@ -120,6 +127,7 @@ class _BookingHistoryState extends State<BookingHistory> {
                           Text('\$${booking['servicePrice']}'),
                         ],
                       ),
+                      SizedBox(height: 5),
                       Text(
                         booking['additionalInfo'],
                         style: TextStyle(color: Colors.grey[600]),

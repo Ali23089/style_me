@@ -1,26 +1,25 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:style_me/Appointment.dart';
-import 'package:style_me/Confirmation.dart'; // Adjust the import path if necessary.
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:style_me/Home_Service.dart';
-import 'package:style_me/deal_payment.dart';
-import 'package:style_me/dealscript2.dart';
+import 'package:style_me/dealScript.dart';
+
+enum SlotStatus { available, selected, booked, lunch }
+
+class TimeSlot {
+  final TimeOfDay time;
+  SlotStatus status;
+
+  TimeSlot({required this.time, required this.status});
+}
 
 class CustomBookingScreen1 extends StatefulWidget {
   final Map<String, dynamic> serviceDetails;
   final String locationName;
-  final DateTime validFrom;
-  final DateTime validTo;
 
-  const CustomBookingScreen1({
-    Key? key,
-    required this.serviceDetails,
-    required this.locationName,
-    required this.validFrom,
-    required this.validTo,
-  }) : super(key: key);
+  const CustomBookingScreen1(
+      {Key? key, required this.serviceDetails, required this.locationName})
+      : super(key: key);
 
   @override
   _CustomBookingScreen1State createState() => _CustomBookingScreen1State();
@@ -61,12 +60,6 @@ class _CustomBookingScreen1State extends State<CustomBookingScreen1>
     );
 
     _controller.forward();
-
-    if (selectedDate.isBefore(widget.validFrom)) {
-      selectedDate = widget.validFrom;
-    } else if (selectedDate.isAfter(widget.validTo)) {
-      selectedDate = widget.validTo;
-    }
   }
 
   @override
@@ -78,21 +71,30 @@ class _CustomBookingScreen1State extends State<CustomBookingScreen1>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Booking Calendar')),
+      appBar: AppBar(
+        title: Text(
+          'Booking Calendar',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Color.fromARGB(255, 13, 106, 101),
+        iconTheme: IconThemeData(color: Colors.white),
+      ),
       body: FadeTransition(
         opacity: _animation,
         child: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              SizedBox(height: 16),
-              buildWeekSelector(context),
-              SizedBox(height: 16),
-              buildLegend(context),
-              SizedBox(height: 16),
-              buildTimeSlotsGrid(),
-              SizedBox(height: 20),
-              buildBookingButton(),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: <Widget>[
+                buildWeekSelector(context),
+                SizedBox(height: 16),
+                buildLegend(context),
+                SizedBox(height: 16),
+                buildTimeSlotsGrid(),
+                SizedBox(height: 20),
+                buildBookingButton(),
+              ],
+            ),
           ),
         ),
       ),
@@ -103,14 +105,13 @@ class _CustomBookingScreen1State extends State<CustomBookingScreen1>
     DateTime now = DateTime.now();
     DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
     List<DateTime> weekDays =
-        List.generate(7, (index) => startOfWeek.add(Duration(days: index)))
-            .where((date) =>
-                date.isAfter(widget.validFrom) &&
-                date.isBefore(widget.validTo.add(Duration(days: 1))))
-            .toList();
+        List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
 
     return Container(
       height: 100,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: weekDays.length,
@@ -129,12 +130,15 @@ class _CustomBookingScreen1State extends State<CustomBookingScreen1>
               duration: Duration(milliseconds: 300),
               curve: Curves.easeInOut,
               width: 60,
-              decoration: isSelected
-                  ? BoxDecoration(
-                      color: Colors.teal,
-                      borderRadius: BorderRadius.circular(50),
-                    )
-                  : null,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? Color.fromARGB(255, 13, 106, 101)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Color.fromARGB(255, 13, 106, 101),
+                ),
+              ),
               alignment: Alignment.center,
               margin: EdgeInsets.symmetric(horizontal: 4),
               child: Column(
@@ -211,10 +215,13 @@ class _CustomBookingScreen1State extends State<CustomBookingScreen1>
             decoration: BoxDecoration(
               color: getColorForStatus(slot.status),
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Color.fromARGB(255, 13, 106, 101)),
             ),
             alignment: Alignment.center,
-            child: Text('${slot.time.format(context)}',
-                style: TextStyle(color: Colors.white)),
+            child: Text(
+              '${slot.time.format(context)}',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         );
       },
@@ -240,33 +247,21 @@ class _CustomBookingScreen1State extends State<CustomBookingScreen1>
   Widget buildBookingButton() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.teal,
+        backgroundColor: Color.fromARGB(255, 13, 106, 101),
         padding: EdgeInsets.symmetric(horizontal: 100, vertical: 20),
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.0)),
         elevation: 5,
       ),
-      onPressed: (selectedTime != null && !isBooking)
-          ? () => _showPaymentMethods()
-          : null,
+      onPressed:
+          (selectedTime != null && !isBooking) ? () => _saveBooking() : null,
       child: isBooking
           ? CircularProgressIndicator(color: Colors.white)
           : Text('BOOK', style: TextStyle(fontSize: 20, color: Colors.white)),
     );
   }
 
-  Future<void> _showPaymentMethods() async {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return PaymentMethodsScreen(
-          onPaymentMethodSelected: _saveBooking,
-        );
-      },
-    );
-  }
-
-  Future<void> _saveBooking(String paymentMethod) async {
+  Future<void> _saveBooking() async {
     setState(() {
       isBooking = true;
     });
@@ -278,18 +273,19 @@ class _CustomBookingScreen1State extends State<CustomBookingScreen1>
           FirebaseAuth.instance.currentUser?.email ?? 'no-email-found';
 
       final bookingData = {
-        'date': selectedDate.toIso8601String(),
-        'time': selectedTime != null ? formatTimeOfDay(selectedTime!) : null,
+        'date': DateFormat.yMMMd().format(selectedDate),
+        'time': selectedTime != null ? formatTimeOfDay(selectedTime!) : '',
         'serviceDetails': widget.serviceDetails,
         'salonName': widget.serviceDetails['salonName'],
         'userEmail': userEmail,
-        'salonEmail': widget.serviceDetails['salonEmail'],
+        'salonEmail': widget.serviceDetails['barberEmail'],
         'locationName': widget.locationName,
-        'paymentMethod': paymentMethod,
       };
 
       // Save the booking information to Firestore
-      await FirebaseFirestore.instance.collection('Bookings').add(bookingData);
+      await FirebaseFirestore.instance
+          .collection('dealsbooking')
+          .add(bookingData);
 
       setState(() {
         timeSlots.firstWhere((slot) => slot.time == selectedTime).status =
@@ -297,14 +293,10 @@ class _CustomBookingScreen1State extends State<CustomBookingScreen1>
         isBooking = false;
       });
 
-      // Navigate to the booking receipt screen
       Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              FadeTransition(
-            opacity: animation,
-            child: BookingReceiptScreen(bookingDetails: bookingData),
-          ),
+        MaterialPageRoute(
+          builder: (context) =>
+              BookingReceiptScreen(bookingDetails: bookingData),
         ),
       );
     } catch (e) {

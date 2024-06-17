@@ -27,7 +27,6 @@ class _SalonScreenState extends State<SalonScreen>
   final List<String> screenNames = [
     'Categories',
     'Details',
-    'Barbers',
   ];
 
   int current = 0;
@@ -119,7 +118,7 @@ class _SalonScreenState extends State<SalonScreen>
                 Categories(
                   salonEmail: widget.salonEmail,
                   salonName: widget.salonName,
-                  locationName: widget.locationName, // Pass locationName here
+                  locationName: widget.locationName,
                 ),
                 Details(
                   salonEmail: widget.salonEmail,

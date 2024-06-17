@@ -99,7 +99,8 @@ class _UserProfileState extends State<UserProfile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.teal,
+        backgroundColor: Color.fromARGB(255, 13, 106, 101),
+        iconTheme: IconThemeData(color: Colors.white),
         elevation: 0,
         title: Text(
           'Profile',
@@ -144,7 +145,7 @@ class _UserProfileState extends State<UserProfile> {
                       right: 10,
                       child: IconButton(
                         icon: Icon(Icons.camera_alt, size: 28),
-                        color: Colors.teal,
+                        color: Color.fromARGB(255, 13, 106, 101),
                         onPressed: _pickImage,
                       ),
                     ),
@@ -159,14 +160,15 @@ class _UserProfileState extends State<UserProfile> {
                 children: <Widget>[
                   Row(
                     children: [
-                      Icon(Icons.person, color: Colors.teal),
+                      Icon(Icons.person,
+                          color: Color.fromARGB(255, 13, 106, 101)),
                       SizedBox(width: 10),
                       Text(
                         '${userData['Name'] ?? 'Unknown'}',
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Colors.teal,
+                          color: Color.fromARGB(255, 13, 106, 101),
                         ),
                       ),
                     ],
@@ -174,7 +176,8 @@ class _UserProfileState extends State<UserProfile> {
                   SizedBox(height: 10),
                   Row(
                     children: [
-                      Icon(Icons.email, color: Colors.teal),
+                      Icon(Icons.email,
+                          color: Color.fromARGB(255, 13, 106, 101)),
                       SizedBox(width: 10),
                       Text(
                         '${userData['Email'] ?? 'Unknown'}',
@@ -185,7 +188,8 @@ class _UserProfileState extends State<UserProfile> {
                   SizedBox(height: 10),
                   Row(
                     children: [
-                      Icon(Icons.phone, color: Colors.teal),
+                      Icon(Icons.phone,
+                          color: Color.fromARGB(255, 13, 106, 101)),
                       SizedBox(width: 10),
                       Text(
                         'Phone: ${userData['PhoneNumber'] ?? 'Unknown'}',
@@ -202,11 +206,11 @@ class _UserProfileState extends State<UserProfile> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
-                  backgroundColor: Colors.teal, // Text color
+                  backgroundColor: Color.fromARGB(255, 13, 106, 101),
                 ),
                 onPressed: () {
                   setState(() {
-                    isEditMode = true; // Switch to edit mode
+                    isEditMode = true;
                   });
                 },
                 child: Text(
@@ -227,7 +231,8 @@ class _UserProfileState extends State<UserProfile> {
                       decoration: InputDecoration(
                         labelText: 'Name',
                         labelStyle: TextStyle(
-                            color: Colors.teal, fontWeight: FontWeight.bold),
+                            color: Color.fromARGB(255, 13, 106, 101),
+                            fontWeight: FontWeight.bold),
                         border: OutlineInputBorder(),
                       ),
                       onChanged: (value) => setState(() => newName = value),
@@ -235,7 +240,7 @@ class _UserProfileState extends State<UserProfile> {
                     SizedBox(height: 20),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
+                        backgroundColor: Color.fromARGB(255, 13, 106, 101),
                       ),
                       onPressed: _pickImage,
                       child: Text(
@@ -249,7 +254,8 @@ class _UserProfileState extends State<UserProfile> {
                       decoration: InputDecoration(
                         labelText: 'Phone Number',
                         labelStyle: TextStyle(
-                            color: Colors.teal, fontWeight: FontWeight.bold),
+                            color: Color.fromARGB(255, 13, 106, 101),
+                            fontWeight: FontWeight.bold),
                         border: OutlineInputBorder(),
                       ),
                       onChanged: (value) =>
@@ -258,7 +264,7 @@ class _UserProfileState extends State<UserProfile> {
                     SizedBox(height: 30),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
+                        backgroundColor: Color.fromARGB(255, 13, 106, 101),
                       ),
                       onPressed: () {
                         _updateUserData();

@@ -19,8 +19,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
   TextEditingController _productNameController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
   TextEditingController _priceController = TextEditingController();
-  TextEditingController _discountController =
-      TextEditingController(); // For deal discount
+  TextEditingController _discountController = TextEditingController();
 
   void _getImage() async {
     final picker = ImagePicker();
@@ -37,7 +36,6 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
   void addService() async {
     String? email = _auth.currentUser?.email;
     if (email == null) {
-      // Handle user not authenticated
       return;
     }
 
@@ -111,7 +109,12 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Service or Deal'),
+        title: Text(
+          'Add Service',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Color(0xFF0D6A65),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -123,72 +126,89 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
               GestureDetector(
                 onTap: _getImage,
                 child: Container(
-                  width: 90,
-                  height: 80,
+                  width: double.infinity,
+                  height: 200,
                   decoration: BoxDecoration(
+                    color: Colors.grey[200],
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Colors.black,
+                      color: Colors.grey[400]!,
                       width: 1,
                     ),
                   ),
                   child: _image != null
-                      ? Image.file(
-                          _image!,
-                          fit: BoxFit.cover,
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.file(
+                            _image!,
+                            fit: BoxFit.cover,
+                          ),
                         )
-                      : Icon(
-                          Icons.camera_alt,
-                          size: 38,
-                          color: Colors.black,
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.camera_alt,
+                              size: 50,
+                              color: Colors.grey[700],
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Tap to add an image',
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
                         ),
                 ),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 20),
               TextField(
                 controller: _productNameController,
                 decoration: InputDecoration(
                   labelText: 'Enter Product Name',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 20),
               TextField(
                 controller: _descriptionController,
                 maxLines: 3,
                 decoration: InputDecoration(
                   labelText: 'Enter Description',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 20),
               TextField(
                 controller: _priceController,
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
                   labelText: 'Enter Price (PKR)',
-                ),
-              ),
-              SizedBox(height: 10),
-              TextField(
-                controller: _discountController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Enter Discount Percentage',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
               ),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: addService,
-                child: Text('Add Service'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
+                child: Text(
+                  'Add Service',
+                  style: TextStyle(color: Colors.white),
                 ),
-              ),
-              SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: addDeal,
-                child: Text('Add offer'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
+                  backgroundColor: Color(0xFF0D6A65),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 15),
                 ),
               ),
             ],

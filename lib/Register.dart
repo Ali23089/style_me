@@ -111,7 +111,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter your name';
                   }
-                  // Additional check for name format (optional regex)
                   if (!RegExp(r'^[a-zA-Z ]+$').hasMatch(value)) {
                     return 'Please enter a valid name (no numbers or special characters)';
                   }
@@ -167,11 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 child: GestureDetector(
                   onTap: () async {
                     if (_formKey.currentState!.validate()) {
-                      try {
-                        // Code to handle user registration
-                      } catch (e) {
-                        // Handle errors
-                      }
+                      try {} catch (e) {}
                     }
                   },
                   child: Container(

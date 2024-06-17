@@ -70,23 +70,22 @@ class _HomeServiceFormScreenState extends State<HomeServiceFormScreen> {
                     'assets/HOME1.png',
                     height: 200,
                   ),
-                  SizedBox(height: 15), // Spacing between logo and text field
+                  SizedBox(height: 15),
                   _buildTextField(_addressController, 'Address',
                       'Please enter your address'),
-                  SizedBox(height: 24), // Increased spacing between fields
+                  SizedBox(height: 24),
                   _buildTextField(_contactNumberController, 'Contact Number',
                       'Please enter your contact number',
                       keyboardType: TextInputType.phone),
-                  SizedBox(height: 24), // Increased spacing between fields
+                  SizedBox(height: 24),
                   _buildTextField(_locationController, 'Location',
                       'Please enter your location',
                       editable: true),
-                  SizedBox(height: 24), // Increased spacing between fields
+                  SizedBox(height: 24),
                   if (userEmail != null)
                     _buildReadOnlyField('Email', userEmail!),
                   if (userName != null) _buildReadOnlyField('Name', userName!),
-                  SizedBox(
-                      height: 40), // Increased spacing before the submit button
+                  SizedBox(height: 40),
                   _buildSubmitButton(),
                 ],
               ),
@@ -114,9 +113,7 @@ class _HomeServiceFormScreenState extends State<HomeServiceFormScreen> {
         suffixIcon: editable
             ? IconButton(
                 icon: Icon(Icons.edit, color: Colors.teal),
-                onPressed: () {
-                  // Optionally, add edit functionality here
-                },
+                onPressed: () {},
               )
             : null,
       ),
@@ -185,9 +182,8 @@ class _HomeServiceFormScreenState extends State<HomeServiceFormScreen> {
           backgroundColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
-          ), // Ensures the button background is transparent to show the gradient
-          shadowColor:
-              Colors.transparent, // Ensures no additional shadow is added
+          ),
+          shadowColor: Colors.transparent,
         ),
       ),
     );

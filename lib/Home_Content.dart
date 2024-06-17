@@ -8,11 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:style_me/Blog.dart';
 import 'package:style_me/Booking.dart';
 import 'package:style_me/Categories.dart';
-import 'package:style_me/DEAL_CAL.dart';
 import 'package:style_me/Feedback.dart';
 import 'package:style_me/FetchDeal.dart';
 import 'package:style_me/SalonScreen.dart';
-import 'package:style_me/Settings.dart';
 import 'package:style_me/SetupBussiness.dart';
 import 'package:style_me/SwithUser.dart';
 import 'package:style_me/firebase_functions.dart';
@@ -76,7 +74,6 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   void _loadThemePreference() async {
-    // Add this method
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _isDarkMode = prefs.getBool('isDarkMode') ?? false;
@@ -172,7 +169,6 @@ class _HomeContentState extends State<HomeContent> {
           fetchedSalons.add({
             'name': data['salonName'] ?? 'No Name',
             'image': data['salonImageUrl'] ?? 'https://via.placeholder.com/150',
-            'rating': data['rating'] ?? 0,
             'email': data['email'] ?? 'No Email',
           });
           print("Fetched Salon: $data");
@@ -183,7 +179,7 @@ class _HomeContentState extends State<HomeContent> {
         nearbySalons = fetchedSalons;
       });
     } catch (e) {
-      print("Error fetching salons within 5km: $e");
+      print("Error fetching salons within 1km: $e");
     }
   }
 
@@ -195,7 +191,6 @@ class _HomeContentState extends State<HomeContent> {
         fetchedSalons.add({
           'name': salon['salonName'],
           'image': salon['salonImageUrl'],
-          'rating': salon['rating'] ?? 0,
           'email': salon['email'],
         });
       }
@@ -277,25 +272,29 @@ class _HomeContentState extends State<HomeContent> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Your Location",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Your Location",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
-                    Text(
-                      locationName,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                      Text(
+                        locationName,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 Icon(Icons.my_location, color: Colors.white),
               ],
@@ -327,7 +326,7 @@ class _HomeContentState extends State<HomeContent> {
                 Container(
                   margin: const EdgeInsets.only(bottom: 1),
                   height: 100,
-                  width: 120, // Define the width to maintain the circle shape
+                  width: 120,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     image: DecorationImage(
@@ -343,7 +342,7 @@ class _HomeContentState extends State<HomeContent> {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
-                    fontFamily: "Times New Roman", // Corrected font family name
+                    fontFamily: "Times New Roman",
                   ),
                 ),
                 const Text(
@@ -351,7 +350,7 @@ class _HomeContentState extends State<HomeContent> {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
-                    fontFamily: "Times New Roman", // Corrected font family name
+                    fontFamily: "Times New Roman",
                   ),
                 ),
               ],
@@ -396,14 +395,14 @@ class _HomeContentState extends State<HomeContent> {
                   MaterialPageRoute(builder: (context) => FeedbackScreen()));
             },
           ),
-          ListTile(
+          /*  ListTile(
             leading: Icon(Icons.back_hand),
             title: Text('Blog'),
             onTap: () {
               Navigator.push(
                   context, MaterialPageRoute(builder: (context) => Blog()));
             },
-          ),
+          ),*/
           ListTile(
             leading: Icon(Icons.settings),
             title: Text('Settings'),
@@ -427,7 +426,7 @@ class _HomeContentState extends State<HomeContent> {
             },
           ),
           Padding(
-            padding: const EdgeInsets.all(16.0), // Adjust padding as needed
+            padding: const EdgeInsets.all(16.0),
             child: buttonWidget(context),
           )
         ],
@@ -490,7 +489,7 @@ class _HomeContentState extends State<HomeContent> {
       margin: EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: Colors.teal, width: 2),
+        border: Border.all(color: Color.fromARGB(255, 13, 106, 101), width: 2),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -516,7 +515,7 @@ class _HomeContentState extends State<HomeContent> {
               style: GoogleFonts.prompt(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
-                color: Colors.teal,
+                color: Color.fromARGB(255, 13, 106, 101),
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -530,7 +529,7 @@ class _HomeContentState extends State<HomeContent> {
                       Categories(
                     salonEmail: salon['email'],
                     salonName: salon['salonName'],
-                    locationName: locationName, // Pass locationName here
+                    locationName: locationName,
                   ),
                   transitionsBuilder:
                       (context, animation, secondaryAnimation, child) {
@@ -553,7 +552,7 @@ class _HomeContentState extends State<HomeContent> {
               'View Details',
               style: GoogleFonts.prompt(
                 fontWeight: FontWeight.w800,
-                color: Colors.teal,
+                color: Color.fromARGB(255, 13, 106, 101),
               ),
             ),
           ),
@@ -599,7 +598,7 @@ class _HomeContentState extends State<HomeContent> {
 
       return dealsSnapshot.docs.map((doc) {
         var data = doc.data();
-        data['id'] = doc.id; // Add the document ID to the data
+        data['id'] = doc.id;
         return data;
       }).toList();
     } catch (e) {
@@ -623,7 +622,6 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   Widget buildTopDealsSection() {
-    Color tealColor = Colors.teal;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -634,7 +632,7 @@ class _HomeContentState extends State<HomeContent> {
             style: GoogleFonts.montserrat(
               fontSize: 20.0,
               fontWeight: FontWeight.bold,
-              color: tealColor,
+              color: Color.fromARGB(255, 13, 106, 101),
             ),
           ),
         ),
@@ -671,8 +669,13 @@ class _HomeContentState extends State<HomeContent> {
 
                         String salonName =
                             salonSnapshot.data ?? 'Salon not found';
-                        return buildDealCard(deals[index], salonName, tealColor,
-                            context, barberEmail, dealTitle);
+                        return buildDealCard(
+                            deals[index],
+                            salonName,
+                            Color.fromARGB(255, 13, 106, 101),
+                            context,
+                            barberEmail,
+                            dealTitle);
                       },
                     );
                   },
@@ -697,20 +700,10 @@ class _HomeContentState extends State<HomeContent> {
       BuildContext context,
       String barberEmail,
       String dealTitle) {
-    String formattedDate = 'Unknown Date';
-
-    if (deal['endDate'] != null) {
-      try {
-        formattedDate =
-            DateFormat('yyyy-MM-dd').format(deal['endDate'].toDate());
-      } catch (e) {
-        formattedDate = 'Invalid Date';
-      }
-    }
     return ClipOval(
       child: Container(
         width: 220,
-        height: 220, // Ensure the container is square
+        height: 220,
         padding: EdgeInsets.all(10),
         margin: EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -751,15 +744,6 @@ class _HomeContentState extends State<HomeContent> {
             SizedBox(height: 1),
             Center(
               child: Text(
-                'Valid: $formattedDate',
-                style: TextStyle(
-                  color: tealColor,
-                ),
-              ),
-            ),
-            SizedBox(height: 1),
-            Center(
-              child: Text(
                 salonName,
                 style: TextStyle(
                   color: tealColor,
@@ -770,23 +754,21 @@ class _HomeContentState extends State<HomeContent> {
               ),
             ),
             SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () {
+            GestureDetector(
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CustomBookingScreen1(
-                      serviceDetails: deal,
-                      locationName: salonName,
-                      validFrom: deal['startDate'].toDate(),
-                      validTo: deal['endDate'].toDate(),
+                    builder: (context) => DealDetailsScreen(
+                      barberEmail: barberEmail,
+                      dealTitle: dealTitle,
                     ),
                   ),
                 );
               },
-              child: Text('Book Now'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: tealColor,
+              child: Icon(
+                Icons.arrow_forward_rounded,
+                color: tealColor,
               ),
             ),
           ],
@@ -796,8 +778,6 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   Widget buildSalonsNearbySection() {
-    Color tealColor = Colors.teal;
-
     String placeholderImageUrl = 'https://via.placeholder.com/50';
 
     return Column(
@@ -810,24 +790,25 @@ class _HomeContentState extends State<HomeContent> {
             style: GoogleFonts.montserrat(
               fontSize: 20.0,
               fontWeight: FontWeight.bold,
-              color: tealColor,
+              color: Color.fromARGB(255, 13, 106, 101),
             ),
           ),
         ),
         Container(
-          height: 255,
+          height: 235,
           child: ListView.builder(
             shrinkWrap: true,
             scrollDirection: Axis.horizontal,
-            itemCount: nearbySalons.length, // Use nearbySalons here
+            itemCount: nearbySalons.length,
             itemBuilder: (context, index) {
               return Container(
                 width: 200,
                 child: Card(
                   margin: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-                  color: Colors.white, // Set the card background to white
+                  color: Colors.white,
                   shape: RoundedRectangleBorder(
-                    side: BorderSide(color: tealColor, width: 2), // Teal border
+                    side: BorderSide(
+                        color: Color.fromARGB(255, 13, 106, 101), width: 2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Column(
@@ -856,23 +837,10 @@ class _HomeContentState extends State<HomeContent> {
                           style: GoogleFonts.prompt(
                             fontSize: 16.0,
                             fontWeight: FontWeight.bold,
-                            color: tealColor,
+                            color: Color.fromARGB(255, 13, 106, 101),
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: List.generate(5, (i) {
-                          return Icon(
-                            i < (nearbySalons[index]['rating'] ?? 0)
-                                ? Icons.star
-                                : Icons.star_border,
-                            color: i < (nearbySalons[index]['rating'] ?? 0)
-                                ? tealColor
-                                : Colors.grey,
-                          );
-                        }),
                       ),
                       TextButton(
                         onPressed: () {
@@ -893,8 +861,6 @@ class _HomeContentState extends State<HomeContent> {
                                 salonEmail: salonEmail,
                                 salonName: salonName,
                                 locationName: locationName,
-                                // Passing both salonEmail and salonName
-                                // Pass locationName here
                               ),
                               transitionsBuilder: (context, animation,
                                   secondaryAnimation, child) {
@@ -917,7 +883,7 @@ class _HomeContentState extends State<HomeContent> {
                           'View Details',
                           style: GoogleFonts.prompt(
                             fontWeight: FontWeight.w800,
-                            color: tealColor,
+                            color: Color.fromARGB(255, 13, 106, 101),
                           ),
                         ),
                       )
@@ -933,7 +899,6 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   Widget buildPopularSalonsSection(BuildContext context) {
-    Color tealColor = Colors.teal;
     String placeholderImageUrl = 'https://via.placeholder.com/150';
 
     return Column(
@@ -946,27 +911,27 @@ class _HomeContentState extends State<HomeContent> {
             style: GoogleFonts.montserrat(
               fontSize: 20.0,
               fontWeight: FontWeight.bold,
-              color: tealColor,
+              color: Color.fromARGB(255, 13, 106, 101),
             ),
           ),
         ),
         ListView.builder(
           shrinkWrap: true,
-          physics:
-              NeverScrollableScrollPhysics(), // Disables scrolling of this ListView
-          itemCount: popularSalons.length, // Use popularSalons for item count
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: popularSalons.length,
           itemBuilder: (context, index) {
             return Card(
               margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               color: Colors.white,
               shape: RoundedRectangleBorder(
-                side: BorderSide(color: tealColor, width: 2), // Teal border
+                side: BorderSide(
+                    color: Color.fromARGB(255, 13, 106, 101), width: 2),
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Column(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(30), // Rounded corners
+                    borderRadius: BorderRadius.circular(30),
                     child: Image.network(
                       popularSalons[index]['image'] ?? placeholderImageUrl,
                       width: double.infinity,
@@ -991,24 +956,10 @@ class _HomeContentState extends State<HomeContent> {
                             style: GoogleFonts.montserrat(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
-                              color: tealColor,
+                              color: Color.fromARGB(255, 13, 106, 101),
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: List.generate(5, (i) {
-                            return Icon(
-                              i < (popularSalons[index]['rating'] ?? 0)
-                                  ? Icons.star
-                                  : Icons.star_border,
-                              color: i < (popularSalons[index]['rating'] ?? 0)
-                                  ? tealColor
-                                  : Colors.grey, // Teal stars for rating
-                              size: 20, // Setting a fixed size for all icons
-                            );
-                          }),
                         ),
                       ],
                     ),
@@ -1031,8 +982,7 @@ class _HomeContentState extends State<HomeContent> {
                                   SalonScreen(
                             salonEmail: salonEmail,
                             salonName: salonName,
-                            locationName:
-                                locationName, // Passing both salonEmail and salonName
+                            locationName: locationName,
                           ),
                           transitionsBuilder:
                               (context, animation, secondaryAnimation, child) {
@@ -1055,7 +1005,7 @@ class _HomeContentState extends State<HomeContent> {
                       'View Details',
                       style: GoogleFonts.prompt(
                         fontWeight: FontWeight.w800,
-                        color: tealColor,
+                        color: Color.fromARGB(255, 13, 106, 101),
                       ),
                     ),
                   )

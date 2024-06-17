@@ -44,7 +44,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Text('Barber not found'),
             );
           } else {
-            // Barber data is available
             var barberData = snapshot.data!;
             String barberName = barberData['BarberName'];
             String salonName = barberData['SalonName'];

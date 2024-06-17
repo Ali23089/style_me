@@ -17,7 +17,7 @@ class _BarberLoginState extends State<BarberLogin> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  bool passToggle = true; // Toggle for password visibility
+  bool passToggle = true;
 
   @override
   Widget build(BuildContext context) {
@@ -94,8 +94,7 @@ class _BarberLoginState extends State<BarberLogin> {
                           suffixIcon: IconButton(
                             onPressed: () {
                               setState(() {
-                                passToggle =
-                                    !passToggle; // Toggle the password visibility
+                                passToggle = !passToggle;
                               });
                             },
                             icon: Icon(

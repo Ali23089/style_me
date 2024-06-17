@@ -164,11 +164,9 @@ class _LoginpageState extends State<Loginpage> {
                         },
                         style: ElevatedButton.styleFrom(
                           shape: StadiumBorder(),
-                          backgroundColor: Colors
-                              .transparent, // Ensures the button itself is transparent
-                          elevation: 0, // No elevation when not pressed
-                          foregroundColor: Colors
-                              .transparent, // Ensures button remains transparent on different states
+                          backgroundColor: Colors.transparent,
+                          elevation: 0,
+                          foregroundColor: Colors.transparent,
                         ),
                         child: Ink(
                           decoration: BoxDecoration(

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart';
-import 'package:style_me/dealScript.dart';
+import 'package:style_me/DEAL_CAL.dart';
 
 class DealDetailsScreen extends StatelessWidget {
   final String barberEmail;
@@ -25,11 +23,15 @@ class DealDetailsScreen extends StatelessWidget {
   }
 
   void _bookNow(BuildContext context, Map<String, dynamic> deal) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return PaymentMethodDialog(deal: deal);
-      },
+    String locationName = deal['locationName'] ?? 'Default Location';
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CustomBookingScreen1(
+          serviceDetails: deal,
+          locationName: locationName,
+        ),
+      ),
     );
   }
 
@@ -37,8 +39,12 @@ class DealDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Deal Details'),
+        title: Text(
+          'Deal Details',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Color.fromARGB(255, 13, 106, 101),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: fetchDeal(),
@@ -111,46 +117,6 @@ class DealDetailsScreen extends StatelessWidget {
                           color: Color.fromARGB(255, 13, 106, 101),
                         ),
                       ),
-                      SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Valid From:',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                DateFormat.yMMMd()
-                                    .format(deal['startDate'].toDate()),
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'To:',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                DateFormat.yMMMd()
-                                    .format(deal['endDate'].toDate()),
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
                       SizedBox(height: 24),
                       Center(
                         child: ElevatedButton(
@@ -178,117 +144,6 @@ class DealDetailsScreen extends StatelessWidget {
             return Center(child: Text('No deal found'));
           }
         },
-      ),
-    );
-  }
-}
-
-class PaymentMethodDialog extends StatelessWidget {
-  final Map<String, dynamic> deal;
-
-  PaymentMethodDialog({required this.deal});
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Select Payment Method'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          PaymentMethodTile(
-            assetPath: 'assets/jazzcashlogo.png',
-            methodName: 'JazzCash',
-            onSelect: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => OrderSummaryScreen(
-                  userEmail: FirebaseAuth.instance.currentUser?.email ?? '',
-                ),
-              ),
-            ),
-          ),
-          PaymentMethodTile(
-            assetPath: 'assets/easypaisa.png',
-            methodName: 'Easypaisa',
-            onSelect: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => OrderSummaryScreen(
-                  userEmail: FirebaseAuth.instance.currentUser?.email ?? '',
-                ),
-              ),
-            ),
-          ),
-          PaymentMethodTile(
-            assetPath: 'assets/card.png',
-            methodName: 'Bank',
-            onSelect: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => OrderSummaryScreen(
-                  userEmail: FirebaseAuth.instance.currentUser?.email ?? '',
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          child: Text(
-            'Cancel',
-            style: TextStyle(color: Color.fromARGB(255, 13, 106, 101)),
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ],
-    );
-  }
-}
-
-class PaymentMethodTile extends StatelessWidget {
-  final String assetPath;
-  final String methodName;
-  final VoidCallback onSelect;
-
-  PaymentMethodTile({
-    required this.assetPath,
-    required this.methodName,
-    required this.onSelect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Image.asset(
-            assetPath,
-            width: 50,
-            height: 50,
-          ),
-          SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              methodName,
-              style: TextStyle(fontSize: 16), // reduced font size
-            ),
-          ),
-          ElevatedButton(
-            onPressed: onSelect,
-            child: Text(
-              'Select',
-              style: TextStyle(
-                  color: Colors.white, fontSize: 14), // reduced font size
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color.fromARGB(255, 13, 106, 101),
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -57,30 +57,30 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Format the date and time
     final date = DateFormat("EEEE, MMMM d, yyyy")
         .format(DateTime.parse(widget.bookingDetails['date']));
     final time = widget.bookingDetails['time'];
 
-    // Get service details
     final serviceDetails =
         widget.bookingDetails['serviceDetails'] as Map<String, dynamic>;
 
-    // Access service details
     final salonName = serviceDetails['salonName'];
     final serviceName = serviceDetails['serviceName'];
     final servicePrice = serviceDetails['servicePrice'];
     final serviceType =
         widget.bookingDetails['serviceType'].toString().split('.').last;
 
-    // Home service details
     final homeServiceDetails =
         widget.bookingDetails['homeServiceDetails'] as Map<String, dynamic>?;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Booking Confirmation"),
-        backgroundColor: Colors.teal,
+        title: Text(
+          "Booking Confirmation",
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Color.fromARGB(255, 13, 106, 101),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: FadeTransition(
         opacity: _fadeAnimation,
@@ -93,14 +93,14 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
               ScaleTransition(
                 scale: _scaleAnimation,
                 child: Icon(Icons.check_circle_outline,
-                    size: 120, color: Colors.teal),
+                    size: 120, color: Color.fromARGB(255, 13, 106, 101)),
               ),
               SizedBox(height: 20),
               Text("Booking Successful!",
                   style: Theme.of(context)
                       .textTheme
                       .headline5
-                      ?.copyWith(color: Colors.teal)),
+                      ?.copyWith(color: Color.fromARGB(255, 13, 106, 101))),
               SizedBox(height: 30),
               SlideTransition(
                 position: _slideAnimation,
@@ -163,7 +163,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen>
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Icon(icon, color: Colors.teal),
+          Icon(icon, color: Color.fromARGB(255, 13, 106, 101)),
           SizedBox(width: 10),
           Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
           SizedBox(width: 10),

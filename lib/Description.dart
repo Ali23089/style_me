@@ -19,7 +19,6 @@ class _DescriptionState extends State<Description> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Add your salon image or banner
             Image.network(
               'https://img.freepik.com/premium-photo/salon-with-mirror-wall-hair-salon-chair_732812-843.jpg',
               width: double.infinity,
@@ -27,7 +26,6 @@ class _DescriptionState extends State<Description> {
               fit: BoxFit.cover,
             ),
             SizedBox(height: 16),
-            // Add salon details like name, address, etc.
             Text(
               'Salon Name',
               style: TextStyle(
@@ -42,7 +40,6 @@ class _DescriptionState extends State<Description> {
               ),
             ),
             SizedBox(height: 16),
-            // Add a description of the salon
             Text(
               'Welcome to our amazing salon! We offer a wide range of services...',
               style: TextStyle(
@@ -50,7 +47,6 @@ class _DescriptionState extends State<Description> {
               ),
             ),
             SizedBox(height: 16),
-            // Add other details or features of the salon
             Text(
               'Services:',
               style: TextStyle(

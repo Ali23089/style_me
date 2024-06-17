@@ -17,7 +17,7 @@ class _BarberFormState extends State<BarberForm> {
   final ImagePicker _imagePicker = ImagePicker();
   File? _imageFile;
   String? _selectedGender;
-  final _formKey = GlobalKey<FormState>(); // GlobalKey for form validation
+  final _formKey = GlobalKey<FormState>();
 
   final nameController = TextEditingController();
   final phoneNumberController = TextEditingController();

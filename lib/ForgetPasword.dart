@@ -15,7 +15,6 @@ class _ForgetPasswordState extends State<ForgetPassword> {
   void _resetPassword() async {
     try {
       await auth.sendPasswordResetEmail(email: _emailController.text.trim());
-      // Show success message or navigate to a success screen
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Password reset email sent!'),
@@ -23,7 +22,6 @@ class _ForgetPasswordState extends State<ForgetPassword> {
         ),
       );
     } catch (e) {
-      // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to send password reset email'),

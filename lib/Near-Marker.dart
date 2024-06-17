@@ -91,8 +91,7 @@ class _NearbySalonsMapScreenState extends State<NearbySalonsMapScreen> {
           myMarkers.add(Marker(
             markerId: MarkerId(salon['name']),
             position: LatLng(salon['latitude'], salon['longitude']),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-                174.0), // Custom hue value for teal
+            icon: BitmapDescriptor.defaultMarkerWithHue(174.0),
             infoWindow: InfoWindow(
               title: salon['name'],
               snippet: 'Tap for details',
@@ -138,7 +137,6 @@ class _NearbySalonsMapScreenState extends State<NearbySalonsMapScreen> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  // Navigate to the salon details page if needed
                 },
                 child: Text('View Details'),
                 style: ElevatedButton.styleFrom(

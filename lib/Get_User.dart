@@ -132,7 +132,7 @@ class _Get_LocationState extends State<Get_Location> {
         child: Icon(Icons.my_location, color: Colors.white),
         backgroundColor: Color.fromARGB(255, 13, 106, 101),
         tooltip: 'Find and save your current location',
-        shape: CircleBorder(), // Explicitly defining the shape as a circle
+        shape: CircleBorder(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
@@ -144,9 +144,7 @@ class _Get_LocationState extends State<Get_Location> {
           children: <Widget>[
             IconButton(
               icon: Icon(Icons.map, color: Colors.white),
-              onPressed: () {
-                // Code to open a map view or perform related action
-              },
+              onPressed: () {},
             ),
             IconButton(
               icon: Icon(Icons.navigate_next, color: Colors.white),

@@ -10,7 +10,7 @@ import 'package:style_me/hh.dart';
 import 'package:style_me/main.dart';
 
 class SessionController {
-  static String? userId; // Example property, adjust as needed
+  static String? userId;
 }
 
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -23,7 +23,6 @@ Future<void> createUserWithEmailAndPassword(
   BuildContext context,
 ) async {
   if (!emailValidatorRegex.hasMatch(emailAddress)) {
-    // Show error message for invalid email format
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Invalid email format."),
@@ -34,7 +33,6 @@ Future<void> createUserWithEmailAndPassword(
   }
 
   if (password.length < 6) {
-    // Show error message for weak password
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Password should be greater than 6 characters."),
@@ -52,19 +50,15 @@ Future<void> createUserWithEmailAndPassword(
     );
 
     if (credential.user != null) {
-      // Add user details to Firestore after successful registration
       await _firestore.collection('users').doc(credential.user!.uid).set({
         'email': emailAddress,
-        // Add other user details if needed
       });
 
-      // Navigate to HomeScreen after successful registration
       /* Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),
       );*/
 
-      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Successfully Registered"),
@@ -73,10 +67,8 @@ Future<void> createUserWithEmailAndPassword(
       );
     }
   } catch (e) {
-    // Handle Firebase Authentication exceptions
     print(e);
     if (e is FirebaseAuthException) {
-      // Handle specific exceptions (e.g., weak-password, email-already-in-use)
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.message ?? "An error occurred."),
@@ -93,7 +85,6 @@ Future<void> signInWithEmailAndPassword(
   BuildContext context,
 ) async {
   if (!emailValidatorRegex.hasMatch(emailAddress)) {
-    // Show error message for invalid email format
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Invalid email format."),

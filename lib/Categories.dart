@@ -5,7 +5,7 @@ import 'package:style_me/Appointment.dart';
 class Categories extends StatefulWidget {
   final String salonEmail;
   final String salonName;
-  final String locationName; // Add this
+  final String locationName;
 
   Categories(
       {Key? key,
@@ -95,9 +95,8 @@ class _CategoriesState extends State<Categories> {
                         CategoryDetails(
                       category: service,
                       salonName: widget.salonName,
-                      salonEmail: widget.salonEmail, // Pass the email
-                      locationName:
-                          widget.locationName, // Pass locationName here
+                      salonEmail: widget.salonEmail,
+                      locationName: widget.locationName,
                     ),
                     transitionsBuilder:
                         (context, animation, secondaryAnimation, child) {
@@ -147,11 +146,15 @@ class CategoryDetails extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(name),
-        backgroundColor: Colors.teal,
+        title: Text(
+          name,
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Color.fromARGB(255, 13, 106, 101),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Container(
-        color: Colors.teal,
+        color: Color.fromARGB(255, 13, 106, 101),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: AnimatedSwitcher(
@@ -193,13 +196,13 @@ class CategoryDetails extends StatelessWidget {
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 24,
-                                color: Colors.teal)),
+                                color: Color.fromARGB(255, 13, 106, 101))),
                         SizedBox(height: 16.0),
                         Text('Description:',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 20,
-                                color: Colors.teal)),
+                                color: Color.fromARGB(255, 13, 106, 101))),
                         Text(description,
                             style:
                                 TextStyle(fontSize: 16, color: Colors.black)),
@@ -220,7 +223,7 @@ class CategoryDetails extends StatelessWidget {
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
-                                color: Colors.teal)),
+                                color: Color.fromARGB(255, 13, 106, 101))),
                         Text('PKR $price',
                             style:
                                 TextStyle(fontSize: 18, color: Colors.black)),
@@ -231,9 +234,11 @@ class CategoryDetails extends StatelessWidget {
                 SizedBox(height: 24.0),
                 Center(
                   child: ElevatedButton.icon(
-                    icon: Icon(Icons.calendar_today, color: Colors.teal),
+                    icon: Icon(Icons.calendar_today,
+                        color: Color.fromARGB(255, 13, 106, 101)),
                     label: Text('Book Appointment',
-                        style: TextStyle(color: Colors.teal)),
+                        style: TextStyle(
+                            color: Color.fromARGB(255, 13, 106, 101))),
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -241,13 +246,12 @@ class CategoryDetails extends StatelessWidget {
                           builder: (context) => CustomBookingScreen(
                             serviceDetails: {
                               'salonName': salonName,
-                              'salonEmail': salonEmail, // Pass the email
+                              'salonEmail': salonEmail,
                               'serviceName': name,
                               'servicePrice': price,
                               'serviceId': category['id'],
                             },
-                            locationName:
-                                locationName, // Pass locationName here
+                            locationName: locationName,
                           ),
                         ),
                       );
